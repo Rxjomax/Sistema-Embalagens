@@ -1,0 +1,63 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+  .page-container {
+    /* Um container para centralizar e embelezar o conteúdo */
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    max-width: 650px; /* Limita a largura para melhor leitura */
+    margin: 60px auto; /* Centraliza o container na página */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    margin-bottom: 16px;
+  }
+
+  .page-description {
+    font-size: 1rem;
+    color: var(--secondary-text);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  .btn-add {
+    background-color: var(--accent-green);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .btn-add:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(22, 163, 74, 0.3);
+  }
+</style>
+
+<div class="page-container">
+  <h2 class="page-title">Ponto de Venda</h2>
+  <p class="page-description">
+    Este é o seu ponto de partida para novas vendas. Clique no botão abaixo para registrar um novo pedido, selecionar produtos e clientes. Ao finalizar, o sistema criará a ordem de produção e dará baixa no estoque automaticamente.
+  </p>
+
+  <a href="{% url 'sales:sale_add' %}" class="btn-add">
+    <i class="fas fa-plus"></i>
+    <span>Registrar Nova Venda</span>
+  </a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "dashboard/base_app.html" %}
+{% block content %}
+<style>
+    .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 700px; margin: auto; }
+    .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
+    .form-actions { margin-top: 32px; display: flex; gap: 16px; }
+    .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
+    .btn-primary { background-color: var(--accent-green); color: white; }
+    .btn-secondary { background-color: #444; color: var(--primary-text); }
+</style>
+<div class="form-container">
+    <h2 class="form-title">{{ page_title|default:"Gerir Estágio" }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+            <a href="{% url 'production:kanban_board' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

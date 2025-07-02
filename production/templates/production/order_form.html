@@ -1,0 +1,35 @@
+{% extends "dashboard/base_app.html" %}
+{% block content %}
+<style>
+    .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 800px; margin: auto; }
+    .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+    .form-control { width: 100%; padding: 12px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
+    .form-actions { margin-top: 32px; display: flex; gap: 16px; }
+    .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
+    .btn-primary { background-color: var(--accent-green); color: white; }
+    .btn-secondary { background-color: #444; color: var(--primary-text); }
+</style>
+<div class="form-container">
+    <h2 class="form-title">{{ page_title|default:"Nova Ordem de Produção" }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <!-- Renderiza o formulário com parágrafos, para melhor espaçamento -->
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Salvar Ordem</button>
+            <a href="{% url 'production:kanban_board' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+<script>
+    // Script para adicionar a classe 'form-control' a todos os campos
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        form.querySelectorAll('input, select, textarea').forEach(function(el) {
+            el.classList.add('form-control');
+        });
+    });
+</script>
+{% endblock %}

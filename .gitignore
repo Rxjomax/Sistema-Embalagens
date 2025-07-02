@@ -1,0 +1,18 @@
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
+# Banco de dados local
+db.sqlite3
+db.sqlite3-journal
+
+# Arquivos de mídia (uploads dos usuários)
+/media/
+
+# Arquivos de ambiente (se você usar no futuro)
+.env
+.env.*
+
+# Arquivos de IDEs
+.vscode/
+.idea/

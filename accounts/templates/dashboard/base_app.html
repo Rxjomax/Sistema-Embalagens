@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Sistema de Gestão</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #121212;
+            --surface: #1e1e1e;
+            --primary-text: #e0e0e0;
+            --secondary-text: #a0a0a0;
+            --sidebar-bg: #1e1e1e;
+            --accent-green: #22c55e;
+            --card-bg: #282828;
+            --border-color: #333333;
+        }
+        * { box-sizing: border-box; }
+        body {
+            background-color: var(--background);
+            color: var(--primary-text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            font-size: 14px;
+        }
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+        }
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 24px;
+            margin-bottom: 16px;
+        }
+        .sidebar-header .hamburger-menu { color: var(--primary-text); font-size: 1.2rem; }
+        .sidebar nav { flex-grow: 1; }
+        .sidebar nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar nav li a {
+            display: flex;
+            align-items: center;
+            color: var(--secondary-text);
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .sidebar nav li a:hover { background-color: #333; color: var(--primary-text); }
+        .sidebar nav li a.active { background-color: var(--accent-green); color: #ffffff; font-weight: 600; }
+        .sidebar nav li a i { margin-right: 16px; width: 20px; text-align: center; font-size: 1rem; }
+        .sidebar-footer {
+            margin-top: auto;
+            background-color: #252525;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        .sidebar-footer h4 { margin: 0 0 8px 0; color: var(--accent-green); font-size: 0.9rem; }
+        .sidebar-footer p { margin: 0; font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5; }
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background-color: var(--surface);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .header-left .page-title { color: var(--secondary-text); font-size: 0.9rem; margin: 0; }
+        .header-left .header-tabs { margin-top: 12px; }
+        .header-left .tab-link {
+            color: var(--secondary-text);
+            background: none;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            margin-right: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .header-left .tab-link:hover { border-color: var(--accent-green); color: var(--primary-text); }
+        .header-left .tab-link.active { background-color: var(--accent-green); border-color: var(--accent-green); color: #fff; }
+        .header-left .tab-link span {
+            background-color: #e53e3e;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            margin-left: 6px;
+        }
+        .header-right { display: flex; align-items: center; gap: 24px; }
+        .search-bar { display: flex; align-items: center; background-color: #333; border-radius: 8px; padding: 0 4px 0 12px; }
+        .search-bar input { background: none; border: none; color: var(--primary-text); padding: 10px 8px; outline: none; }
+        .search-bar input::placeholder { color: var(--secondary-text); }
+        .search-bar button { background: var(--accent-green); border: none; color: white; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; }
+        .user-menu { display: flex; align-items: center; gap: 20px; }
+        .user-menu i, .user-menu a { font-size: 1.2rem; color: var(--secondary-text); cursor: pointer; text-decoration: none; }
+        .user-menu .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--accent-green); }
+        main {
+            padding: 32px;
+            background-color: var(--background);
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="hamburger-menu"><i class="fas fa-bars"></i></a>
+            </div>
+            <nav>
+                <ul>
+                    {# Corrigido: Usando 'dashboard:main' e 'dashboard:search_results' #}
+                    <li><a href="{% url 'dashboard:main' %}" class="{% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}"><i class="fas fa-chart-pie"></i> Dashboard</a></li> {# <--- CORRIGIDO #}
+                    <li><a href="{% url 'products:product_list' %}" class="{% if request.resolver_match.app_name == 'products' %}active{% endif %}"><i class="fas fa-box-open"></i> Produtos</a></li>
+                    <li><a href="{% url 'categories:category_list' %}" class="{% if request.resolver_match.app_name == 'categories' %}active{% endif %}"><i class="fas fa-tags"></i> Categorias</a></li>
+                    <li><a href="{% url 'customers:customer_list' %}" class="{% if request.resolver_match.app_name == 'customers' %}active{% endif %}"><i class="fas fa-user-friends"></i> Clientes</a></li>
+                    <li><a href="{% url 'suppliers:supplier_list' %}" class="{% if request.resolver_match.app_name == 'suppliers' %}active{% endif %}"><i class="fas fa-truck"></i> Fornecedores</a></li>
+                    <li><a href="{% url 'users:user_list' %}" class="{% if request.resolver_match.app_name == 'users' %}active{% endif %}"><i class="fas fa-users-cog"></i> Usuários</a></li>
+                    <li><a href="{% url 'production:kanban_board' %}" class="{% if request.resolver_match.app_name == 'production' %}active{% endif %}"><i class="fas fa-cogs"></i> Produção</a></li>
+                    <li><a href="{% url 'sales:sale_list' %}" class="{% if request.resolver_match.app_name == 'sales' %}active{% endif %}"><i class="fas fa-chart-line"></i> Vendas</a></li>
+                    <li><a href="{% url 'inventory:inventory_list' %}" class="{% if request.resolver_match.app_name == 'inventory' %}active{% endif %}"><i class="fas fa-boxes-stacked"></i> Estoque</a></li>
+                    <li><a href="{% url 'finance:record_list' %}" class="{% if request.resolver_match.app_name == 'finance' %}active{% endif %}"><i class="fas fa-dollar-sign"></i> Financeiro</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <h4>Seu Relatório Mensal</h4>
+                <p>Veja as informações sobre seus negócios, prós e contras.</p>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header>
+                <div class="header-left">
+                    <h3 class="page-title">Início</h3>
+                    <div class="header-tabs">
+                        {# Corrigido: Usando 'dashboard:main' #}
+                        <a href="{% url 'dashboard:main' %}" class="tab-link active">Visão Geral</a> {# <--- CORRIGIDO #}
+                        {% if notification_count > 0 %}
+                            <a href="#" class="tab-link">Alertas <span>{{ notification_count }}</span></a>
+                        {% else %}
+                            <a href="#" class="tab-link">Alertas</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="header-right">
+                    {# Corrigido: Usando 'dashboard:search_results' #}
+                    <form action="{% url 'dashboard:search_results' %}" method="get" class="search-bar"> {# <--- CORRIGIDO #}
+                        <input type="text" name="q" placeholder="Pesquisar por algo..." value="{{ request.GET.q }}">
+                        <button type="submit"><i class="fas fa-search"></i></button>
+                    </form>
+                    <div class="user-menu">
+                        <a href="{% url 'accounts:profile' %}" title="Configurações"><i class="fas fa-cog"></i></a> {# <--- Corrigido (se 'profile' for em 'accounts') #}
+                        <div class="avatar"></div>
+                        <form action="{% url 'accounts:logout' %}" method="post" style="display: inline; margin: 0; padding: 0;"> {# <--- Corrigido #}
+                            {% csrf_token %}
+                            <button type="submit" title="Sair" style="background: none; border: none; cursor: pointer; padding: 0; vertical-align: middle;">
+                                <i class="fas fa-sign-out-alt" style="font-size: 1.2rem; color: var(--secondary-text);"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+            <main>
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

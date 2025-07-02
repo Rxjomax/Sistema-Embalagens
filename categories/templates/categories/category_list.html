@@ -1,0 +1,52 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    .table-container { background-color: var(--card-bg); border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .table-title { margin: 0; font-size: 1.2rem; }
+    .btn-add { background-color: var(--accent-green); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; }
+    .styled-table { width: 100%; border-collapse: collapse; }
+    .styled-table thead tr { background-color: #333; }
+    .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; }
+    .styled-table tbody tr { border-bottom: 1px solid var(--border-color); }
+    .actions a { color: var(--secondary-text); text-decoration: none; transition: color 0.2s; }
+    .actions a:hover { color: var(--accent-green); }
+    .actions a.delete:hover { color: #ef4444; }
+</style>
+
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">Categorias Cadastradas</h2>
+        <a href="{% url 'categories:category_add' %}" class="btn-add"><i class="fas fa-plus"></i> Adicionar Categoria</a>
+    </div>
+
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Nome da Categoria</th>
+                <th>Código</th>
+                <th>Produtos Vinculados</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ category.name }}</td>
+                <td>{{ category.code }}</td>
+                <td>{{ category.product_count }}</td>
+                <td class="actions">
+                    <a href="{% url 'categories:category_update' category.pk %}" title="Editar"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'categories:category_delete' category.pk %}" title="Excluir" class="delete" style="margin-left: 15px;"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 20px;">Nenhuma categoria cadastrada ainda.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "dashboard/base_app.html" %}
+{% block content %}
+<style>
+    .confirm-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 600px; margin: auto; text-align: center; }
+    .confirm-title { margin-top: 0; margin-bottom: 16px; font-size: 1.5rem; color: #ef4444; }
+    .confirm-text { color: var(--secondary-text); margin-bottom: 32px; font-size: 1.1rem; }
+    .confirm-text strong { color: var(--primary-text); }
+    .confirm-actions { display: flex; gap: 16px; justify-content: center; }
+    .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
+    .btn-danger { background-color: #ef4444; color: white; }
+    .btn-secondary { background-color: #444; color: var(--primary-text); }
+</style>
+<div class="confirm-container">
+    <h2 class="confirm-title">Confirmar Exclusão de Estágio</h2>
+    <p class="confirm-text">Você tem certeza que deseja excluir o estágio "<strong>{{ object.name }}</strong>"?</p>
+    <p class="confirm-text" style="font-size: 0.9rem;">Todas as ordens de produção nesta coluna ficarão sem estágio definido.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="confirm-actions">
+            <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+            <a href="{% url 'production:kanban_board' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

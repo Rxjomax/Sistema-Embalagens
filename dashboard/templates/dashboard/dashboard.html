@@ -1,0 +1,139 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    /* Estilos existentes */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+    .card {
+        background-color: var(--card-bg);
+        padding: 24px;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+    }
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .card-icon {
+        font-size: 1.2rem;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+    .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary-text);
+    }
+    .card-body {
+        flex-grow: 1; /* Faz o corpo do card crescer */
+    }
+    .card-body p {
+        margin: 8px 0;
+        font-size: 0.9rem;
+        color: var(--secondary-text);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .card-body p span {
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: var(--primary-text);
+    }
+
+    /* --- ESTILOS DO CARD DE ALERTA ATUALIZADOS --- */
+    .alert-card {
+        border-left: 5px solid #f59e0b;
+    }
+    .alert-product-name {
+        font-weight: 500;
+        color: var(--primary-text);
+    }
+    .alert-stock-details {
+        font-size: 0.9rem;
+        text-align: right;
+    }
+    .alert-stock-details .current-stock {
+        color: #ef4444; /* Vermelho para o estoque atual */
+        font-weight: bold;
+    }
+</style>
+
+<div class="dashboard-grid">
+
+    {% if low_stock_products %}
+    <div class="card alert-card">
+        <div class="card-header">
+            <div class="card-icon" style="background-color: #f59e0b40; color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3 class="card-title">Alerta de Estoque Baixo</h3>
+        </div>
+        <div class="card-body">
+            {% for product in low_stock_products %}
+                <p>
+                    <span class="alert-product-name">{{ product.name }}</span>
+                    <span class="alert-stock-details">
+                        <b class="current-stock">{{ product.stock_quantity }}</b> / {{ product.minimum_stock }}
+                    </span>
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon" style="background-color: #3b82f640; color: #60a5fa;"><i class="fas fa-exchange-alt"></i></div>
+            <h3 class="card-title">Entradas x Saídas (Mês Atual)</h3>
+        </div>
+        <div class="card-body">
+            <p>Entradas: <span>{{ monthly_entries }}</span></p>
+            <p>Saídas: <span>{{ monthly_exits }}</span></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon" style="background-color: #8b5cf640; color: #a78bfa;"><i class="fas fa-users"></i></div>
+            <h3 class="card-title">Clientes</h3>
+        </div>
+        <div class="card-body">
+            <p>Novos (últimos 30 dias): <span>{{ new_customers }}</span></p>
+            <p>Total de Clientes Ativos: <span>{{ total_customers }}</span></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon" style="background-color: #f59e0b40; color: #fcd34d;"><i class="fas fa-boxes-stacked"></i></div>
+            <h3 class="card-title">Estoque</h3>
+        </div>
+        <div class="card-body">
+            <p>Total de Itens em Estoque: <span>{{ stock_total_items }}</span></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon" style="background-color: #10b98140; color: #34d399;"><i class="fas fa-dollar-sign"></i></div>
+            <h3 class="card-title">Financeiro</h3>
+        </div>
+        <div class="card-body">
+            <p>Receita (Vendas Pagas): <span>R$ {{ total_revenue|floatformat:2 }}</span></p>
+            <p>Despesa: <span>R$ {{ total_expenses|floatformat:2 }}</span></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

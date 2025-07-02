@@ -1,0 +1,40 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    .results-container { background-color: var(--card-bg); border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); }
+    .results-header { margin-bottom: 24px; }
+    .results-title { margin: 0; }
+    .results-title code { background-color: #333; padding: 4px 8px; border-radius: 4px; color: var(--accent-green); }
+    .results-section h3 { border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+    .results-list { list-style: none; padding: 0; }
+    .results-list li { margin-bottom: 10px; }
+    .results-list li a { color: var(--primary-text); text-decoration: none; }
+    .results-list li a:hover { text-decoration: underline; }
+</style>
+
+<div class="results-container">
+    <div class="results-header">
+        {% if query %}
+            <h2 class="results-title">Resultados da pesquisa para: <code>{{ query }}</code></h2>
+        {% else %}
+            <h2 class="results-title">Por favor, digite um termo para pesquisar.</h2>
+        {% endif %}
+    </div>
+
+    {% if query %}
+    <div class="results-section">
+        <h3>Produtos Encontrados ({{ product_results.count }})</h3>
+        {% if product_results %}
+            <ul class="results-list">
+            {% for product in product_results %}
+                <li><a href="{% url 'products:product_update' product.pk %}">{{ product.name }} (Código: {{ product.code }})</a></li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nenhum produto encontrado.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

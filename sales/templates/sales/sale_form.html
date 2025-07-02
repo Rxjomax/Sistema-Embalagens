@@ -1,0 +1,170 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 950px; margin: auto; }
+    .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+    .form-control { width: 100%; padding: 12px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
+    .form-actions { margin-top: 32px; display: flex; justify-content: flex-end; gap: 16px; }
+    .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
+    .btn-primary { background-color: var(--accent-green); color: white; }
+    .btn-secondary { background-color: #444; color: var(--primary-text); }
+    .btn-add-item { background-color: #4a90e2; color: white; margin-top: 10px; font-size: 0.9rem; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-remove-item { background-color: #d0021b; color: white; border-radius: 6px; padding: 5px 10px; font-size: 0.8rem; }
+    .styled-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .styled-table th, .styled-table td { padding: 10px; text-align: left; vertical-align: middle; }
+    .styled-table td input, .styled-table td select { height: 46px; }
+    #grand-total { font-size: 1.2rem; font-weight: bold; }
+    .input-group { display: flex; align-items: center; }
+    .input-group-text { padding: 12px; background-color: #444; border: 1px solid #444; border-right: none; border-radius: 8px 0 0 8px; }
+    .input-group .form-control { border-radius: 0 8px 8px 0; }
+</style>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-container">
+        <h2 class="form-title">Registrar Nova Venda</h2>
+        
+        <div class="form-group">
+            <label for="{{ form.customer.id_for_label }}">Cliente</label>
+            {{ form.customer }}
+        </div>
+
+        <h3 style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">Itens da Venda</h3>
+        
+        {{ item_formset.management_form }}
+        
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Produto</th>
+                    <th style="width: 15%;">Quantidade</th>
+                    <th style="width: 20%;">Preço Unit.</th>
+                    <th style="width: 20%;">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="item-formset-body">
+                {% for item_form in item_formset %}
+                <tr class="item-form">
+                    {{ item_form.id }}
+                    <td>{{ item_form.product }}</td>
+                    <td>{{ item_form.quantity }}</td>
+                    <td>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            {{ item_form.unit_price }}
+                        </div>
+                    </td>
+                    <td class="total-cell">R$ 0.00</td>
+                    <td>
+                        {% if item_form.instance.pk %}
+                            {{ item_form.DELETE }} <label for="{{ item_form.DELETE.id_for_label }}" class="btn-remove-item">Remover</label>
+                        {% else %}
+                            <button type="button" class="btn-remove-item">Remover</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="button" id="add-item-btn" class="btn btn-add-item"><i class="fas fa-plus"></i> Adicionar Item</button>
+        
+        <template id="empty-form-template">
+            <tr class="item-form">
+                {{ item_formset.empty_form.id }}
+                <td>{{ item_formset.empty_form.product }}</td>
+                <td>{{ item_formset.empty_form.quantity }}</td>
+                <td>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        {{ item_formset.empty_form.unit_price }}
+                    </div>
+                </td>
+                <td class="total-cell">R$ 0.00</td>
+                <td><button type="button" class="btn btn-remove-item">Remover</button></td>
+            </tr>
+        </template>
+
+        <h3 id="grand-total" style="text-align: right; margin-top: 20px;">Total da Venda: R$ 0.00</h3>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Finalizar Venda</button>
+            <a href="{% url 'sales:sale_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </div>
+</form>
+
+<script>
+const productPricesJson = '{{ product_prices_json|default:"{}"|escapejs }}';
+const productPrices = JSON.parse(productPricesJson);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const formsetBody = document.getElementById('item-formset-body');
+    const addItemBtn = document.getElementById('add-item-btn');
+    const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
+    const grandTotalElement = document.getElementById('grand-total');
+    const emptyFormTemplate = document.getElementById('empty-form-template');
+
+    function updateEventListeners(row) {
+        const productSelector = row.querySelector('.product-selector');
+        const quantityInput = row.querySelector('.quantity-input');
+        const priceInput = row.querySelector('.price-input');
+        
+        if (!productSelector || !quantityInput || !priceInput) return;
+
+        productSelector.addEventListener('change', () => {
+            const selectedProductId = productSelector.value;
+            const price = productPrices[selectedProductId] || '0.00';
+            priceInput.value = parseFloat(price).toFixed(2);
+            calculateRowTotal(row);
+        });
+
+        quantityInput.addEventListener('input', () => calculateRowTotal(row));
+    }
+
+    function calculateRowTotal(row) {
+        const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
+        const price = parseFloat(row.querySelector('.price-input').value) || 0;
+        const total = quantity * price;
+        row.querySelector('.total-cell').textContent = `R$ ${total.toFixed(2)}`;
+        updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+        let grandTotal = 0;
+        document.querySelectorAll('.total-cell').forEach(cell => {
+            grandTotal += parseFloat(cell.textContent.replace('R$ ', '')) || 0;
+        });
+        grandTotalElement.textContent = `Total da Venda: R$ ${grandTotal.toFixed(2)}`;
+    }
+
+    addItemBtn.addEventListener('click', function() {
+        const totalForms = parseInt(totalFormsInput.value);
+        const newFormHtml = emptyFormTemplate.innerHTML.replace(/__prefix__/g, totalForms);
+        
+        const newRow = formsetBody.insertRow();
+        newRow.classList.add('item-form');
+        newRow.innerHTML = newFormHtml;
+        
+        totalFormsInput.value = totalForms + 1;
+        updateEventListeners(newRow);
+    });
+
+    formsetBody.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('btn-remove-item')) {
+            const rowToRemove = e.target.closest('.item-form');
+            rowToRemove.remove();
+            updateGrandTotal();
+        }
+    });
+
+    document.querySelectorAll('.item-form').forEach(row => {
+        updateEventListeners(row);
+        calculateRowTotal(row);
+    });
+});
+</script>
+{% endblock %}

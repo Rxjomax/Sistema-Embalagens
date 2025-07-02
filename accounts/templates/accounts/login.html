@@ -1,0 +1,27 @@
+{% extends "accounts/base_auth.html" %}
+
+{% block content %}
+<div class="login-container">
+    <h1>Login</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" name="username" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="password" placeholder="Senha" required>
+        </div>
+        
+        {% if form.errors %}
+            <p style="color: #ff4d4d; margin-bottom: 15px;">Seu email ou senha estão incorretos. Tente novamente.</p>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">LOGIN</button>
+        
+        {# AQUI ESTÁ A CORREÇÃO: Usando 'accounts:password_reset' #}
+        <a href="{% url 'accounts:password_reset' %}" class="btn btn-secondary" style="text-decoration: none;">Esqueceu a senha?</a>
+    </form>
+</div>
+{% endblock %}

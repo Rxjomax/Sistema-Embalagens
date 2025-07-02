@@ -1,0 +1,34 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 800px; margin: auto; }
+    .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+    .form-control { width: 100%; padding: 12px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
+    .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; display: inline-block; }
+    .btn-primary { background-color: var(--accent-green); color: white; }
+</style>
+
+<div class="form-container">
+    <h2 class="form-title">Perfil do Utilizador</h2>
+    <div class="form-group">
+        <label>Nome de Utilizador</label>
+        <input type="text" class="form-control" value="{{ user.username }}" readonly>
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="form-control" value="{{ user.email }}" readonly>
+    </div>
+    <div class="form-group">
+        <label>Primeiro Nome</label>
+        <input type="text" class="form-control" value="{{ user.first_name|default:'' }}" readonly>
+    </div>
+    <div class="form-group">
+        <label>Último Nome</label>
+        <input type="text" class="form-control" value="{{ user.last_name|default:'' }}" readonly>
+    </div>
+     <a href="{% url 'admin:auth_user_change' user.pk %}" class="btn btn-primary" target="_blank">Editar Perfil Completo</a>
+</div>
+{% endblock %}

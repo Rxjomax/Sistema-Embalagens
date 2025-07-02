@@ -1,0 +1,96 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    /* Estilos para a tabela */
+    .table-container { 
+        background-color: var(--card-bg); 
+        border-radius: 12px; 
+        padding: 24px; 
+        border: 1px solid var(--border-color); 
+    }
+    .table-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 24px; 
+    }
+    .table-title { 
+        margin: 0; 
+        font-size: 1.2rem; 
+    }
+    .styled-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+    }
+    .styled-table thead tr { 
+        background-color: #333; 
+    }
+    .styled-table th, .styled-table td { 
+        padding: 12px 15px; 
+        text-align: left; 
+        vertical-align: middle;
+    }
+    .styled-table tbody tr { 
+        border-bottom: 1px solid var(--border-color); 
+    }
+    .styled-table tbody tr:last-of-type {
+        border-bottom: none;
+    }
+    .styled-table tbody tr:hover { 
+        background-color: #3a3a3a; 
+    }
+    .actions a { 
+        color: var(--secondary-text); 
+        text-decoration: none; 
+        transition: color 0.2s;
+        font-size: 1.1rem; /* Aumentar um pouco o ícone */
+    }
+    .actions a:hover { 
+        color: var(--accent-green); 
+    }
+    .status-PAGO { color: var(--accent-green); font-weight: bold; }
+    .status-AGUARDANDO { color: var(--accent-yellow); }
+    .status-ATRASADO { color: var(--accent-red); }
+
+</style>
+
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">Registros Financeiros</h2>
+        </div>
+
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>#ID da Venda</th>
+                <th>Cliente</th>
+                <th>Data da Venda</th>
+                <th>Valor Total</th>
+                <th>Status Financeiro</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.sale.pk }}</td>
+                <td>{{ record.sale.customer.name }}</td>
+                <td>{{ record.sale.sale_date|date:"d/m/Y" }}</td>
+                <td>R$ {{ record.sale.total_value|floatformat:2 }}</td>
+                <td><span class="status-{{ record.status }}">{{ record.get_status_display }}</span></td>
+                <td class="actions">
+                    <a href="{% url 'finance:record_update' record.pk %}" title="Gerenciar Pagamento">
+                        <i class="fas fa-tasks"></i> </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 20px;">Nenhum registro financeiro encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

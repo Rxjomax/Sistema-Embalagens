@@ -1,0 +1,52 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    .import-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 700px; margin: auto; text-align: center; }
+    .import-title { margin-top: 0; margin-bottom: 16px; font-size: 1.5rem; color: var(--accent-green); }
+    .import-instructions { color: var(--secondary-text); margin-bottom: 32px; font-size: 1rem; line-height: 1.6; }
+    .import-instructions code { background-color: #333; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .file-upload-wrapper { border: 2px dashed #444; padding: 30px; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .file-upload-wrapper:hover { border-color: var(--accent-green); }
+    .form-actions { margin-top: 32px; display: flex; justify-content: center; gap: 16px; }
+    .btn-action { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
+    .btn-add { background-color: var(--accent-green); color: white; }
+
+    /* --- 1. ESTILO PARA A NOVA CAIXA DE SELEÇÃO --- */
+    .header-checkbox {
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: var(--secondary-text);
+    }
+</style>
+
+<div class="import-container">
+    <h2 class="import-title">Importar Produtos de Planilha</h2>
+    <div class="import-instructions">
+        <p>Envie um ficheiro <strong>.xlsx</strong>. As colunas devem estar na seguinte ordem:</p>
+        <p><code>codigo</code>, <code>nome</code>, <code>categoria</code>, <code>valor unitario</code>, <code>medida x</code>, <code>medida y</code></p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="file-upload-wrapper" onclick="document.getElementById('excel_file').click();">
+            <input type="file" name="excel_file" id="excel_file" accept=".xlsx" style="display: none;" onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : 'Nenhum ficheiro escolhido'">
+            <label for="excel_file" style="cursor: pointer;"><i class="fas fa-file-excel"></i> Clique para escolher o ficheiro</label>
+            <p id="file-name" style="margin-top: 10px; color: var(--accent-green);"></p>
+        </div>
+        
+        <div class="header-checkbox">
+            <input type="checkbox" name="has_header" id="has_header" checked>
+            <label for="has_header" style="cursor: pointer;">A primeira linha da planilha é um cabeçalho (ignorar)</label>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-action btn-add">Enviar e Importar</button>
+            <a href="{% url 'products:product_list' %}" class="btn-action" style="background-color: #444;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
