@@ -2,13 +2,33 @@
 
 {% block content %}
 <style>
+    /* ... Seus estilos existentes ... */
     .table-container { background-color: var(--card-bg); border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); }
-    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 20px; }
     .table-title { margin: 0; font-size: 1.2rem; }
     .table-header-actions { display: flex; gap: 10px; }
     .btn-action { color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
     .btn-add { background-color: var(--accent-green); }
-    .btn-import { background-color: #3b82f6; } /* Azul para o botão de importar */
+    .btn-import { background-color: #3b82f6; }
+
+    .search-form { display: flex; align-items: center; gap: 10px; }
+    .search-input {
+        padding: 10px 15px;
+        background-color: #333;
+        border: 1px solid #444;
+        border-radius: 8px;
+        color: var(--primary-text);
+        font-size: 1rem;
+        width: 250px;
+    }
+    .search-btn {
+        background-color: var(--accent-green);
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
     .styled-table { width: 100%; border-collapse: collapse; }
     .styled-table thead tr { background-color: #333; }
     .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; }
@@ -21,8 +41,13 @@
 <div class="table-container">
     <div class="table-header">
         <h2 class="table-title">Produtos Cadastrados</h2>
+        
+        <form method="get" action="{% url 'products:product_list' %}" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Buscar por nome ou código..." value="{{ search_query }}">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+
         <div class="table-header-actions">
-            <!-- BOTÃO DE IMPORTAR REINTRODUZIDO -->
             <a href="{% url 'products:product_import' %}" class="btn-action btn-import">
                 <i class="fas fa-file-import"></i> Importar
             </a>

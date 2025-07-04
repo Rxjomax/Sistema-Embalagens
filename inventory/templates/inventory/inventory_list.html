@@ -2,69 +2,51 @@
 
 {% block content %}
 <style>
-    .table-container { 
-        background-color: var(--card-bg); 
-        border-radius: 12px; 
-        padding: 24px; 
-        border: 1px solid var(--border-color); 
+    /* ... Seus estilos existentes ... */
+    .table-container { background-color: var(--card-bg); border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 20px; }
+    .table-title { margin: 0; font-size: 1.2rem; }
+    .header-actions { display: flex; gap: 10px; }
+    .btn-action { color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-entry { background-color: var(--accent-green); }
+    .btn-exit { background-color: #ef4444; }
+    .styled-table { width: 100%; border-collapse: collapse; }
+    .styled-table thead tr { background-color: #333; }
+    .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; }
+    .styled-table tbody tr { border-bottom: 1px solid var(--border-color); }
+    .stock-low { color: #facc15; font-weight: bold; }
+    .stock-out { color: #ef4444; font-weight: bold; }
+    
+    /* --- ESTILOS PARA A BARRA DE BUSCA --- */
+    .search-form { display: flex; align-items: center; gap: 10px; }
+    .search-input {
+        padding: 10px 15px;
+        background-color: #333;
+        border: 1px solid #444;
+        border-radius: 8px;
+        color: var(--primary-text);
+        font-size: 1rem;
+        width: 250px;
     }
-    .table-header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        margin-bottom: 24px; 
-    }
-    .table-title { 
-        margin: 0; 
-        font-size: 1.2rem; 
-    }
-    .header-actions {
-        display: flex;
-        gap: 10px;
-    }
-    .btn-action { 
-        color: white; 
-        padding: 10px 20px; 
-        border-radius: 8px; 
-        text-decoration: none; 
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .btn-entry {
+    .search-btn {
         background-color: var(--accent-green);
-    }
-    .btn-exit {
-        background-color: #ef4444; /* Vermelho */
-    }
-    .styled-table { 
-        width: 100%; 
-        border-collapse: collapse; 
-    }
-    .styled-table thead tr { 
-        background-color: #333; 
-    }
-    .styled-table th, .styled-table td { 
-        padding: 12px 15px; 
-        text-align: left; 
-    }
-    .styled-table tbody tr { 
-        border-bottom: 1px solid var(--border-color); 
-    }
-    .stock-low {
-        color: #facc15; /* Amarelo */
-        font-weight: bold;
-    }
-    .stock-out {
-        color: #ef4444; /* Vermelho */
-        font-weight: bold;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
     }
 </style>
 
 <div class="table-container">
     <div class="table-header">
         <h2 class="table-title">Controle de Estoque</h2>
+
+        <form method="get" action="{% url 'inventory:inventory_list' %}" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Buscar por nome ou código..." value="{{ search_query }}">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+
         <div class="header-actions">
             <a href="{% url 'inventory:create_movement' 'entrada' %}" class="btn-action btn-entry"><i class="fas fa-plus-circle"></i> Registrar Entrada</a>
             <a href="{% url 'inventory:create_movement' 'saida' %}" class="btn-action btn-exit"><i class="fas fa-minus-circle"></i> Registrar Saída</a>
@@ -98,7 +80,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" style="text-align: center; padding: 20px;">Nenhum produto cadastrado.</td>
+                <td colspan="4" style="text-align: center; padding: 20px;">Nenhum produto encontrado.</td>
             </tr>
             {% endfor %}
         </tbody>

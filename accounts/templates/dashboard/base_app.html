@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -10,196 +11,173 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --background: #121212;
-            --surface: #1e1e1e;
-            --primary-text: #e0e0e0;
-            --secondary-text: #a0a0a0;
-            --sidebar-bg: #1e1e1e;
-            --accent-green: #22c55e;
-            --card-bg: #282828;
-            --border-color: #333333;
+            --background: #121212; --surface: #1e1e1e; --primary-text: #e0e0e0;
+            --secondary-text: #a0a0a0; --sidebar-bg: #1e1e1e; --accent-green: #22c55e;
+            --accent-blue: #3b82f6; --accent-red: #ef4444; --card-bg: #282828; 
+            --border-color: #333333; --sidebar-width: 250px; --sidebar-width-collapsed: 88px;
         }
         * { box-sizing: border-box; }
-        body {
-            background-color: var(--background);
-            color: var(--primary-text);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            font-size: 14px;
-        }
-        .app-container {
-            display: flex;
-            height: 100vh;
-            width: 100%;
-        }
+        body { background-color: var(--background); color: var(--primary-text); font-family: 'Inter', sans-serif; margin: 0; font-size: 14px; }
+        .app-container { display: flex; min-height: 100vh; }
         .sidebar {
-            width: 250px;
-            background-color: var(--sidebar-bg);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
+            width: var(--sidebar-width); background-color: var(--sidebar-bg); padding: 24px;
+            display: flex; flex-direction: column; flex-shrink: 0;
             border-right: 1px solid var(--border-color);
+            transition: width 0.3s ease, padding 0.3s ease;
+            position: relative; z-index: 1001;
         }
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* --- 1. CORREÇÃO DE ALINHAMENTO DO HEADER DA SIDEBAR --- */
+        .sidebar-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; /* Garante que o logo fique à esquerda e o botão à direita */
             padding-bottom: 24px;
             margin-bottom: 16px;
         }
-        .sidebar-header .hamburger-menu { color: var(--primary-text); font-size: 1.2rem; }
-        .sidebar nav { flex-grow: 1; }
-        .sidebar nav ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar nav li a {
+        .logo-container {
             display: flex;
             align-items: center;
-            color: var(--secondary-text);
+            gap: 12px;
             text-decoration: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-weight: 500;
-            transition: background-color 0.2s, color 0.2s;
         }
+        .logo-container img { height: 60px; width: auto; }
+        .logo-text { font-size: 1.2rem; font-weight: 700; color: var(--primary-text); white-space: nowrap; }
+
+        .hamburger-menu { color: var(--primary-text); font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        .sidebar nav { flex-grow: 1; overflow-y: auto; margin-bottom: 24px; }
+        .sidebar nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar nav li a { display: flex; align-items: center; color: var(--secondary-text); text-decoration: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; transition: background-color 0.2s, color 0.2s; white-space: nowrap; }
         .sidebar nav li a:hover { background-color: #333; color: var(--primary-text); }
-        .sidebar nav li a.active { background-color: var(--accent-green); color: #ffffff; font-weight: 600; }
-        .sidebar nav li a i { margin-right: 16px; width: 20px; text-align: center; font-size: 1rem; }
-        .sidebar-footer {
-            margin-top: auto;
-            background-color: #252525;
-            padding: 16px;
-            border-radius: 8px;
-        }
+        .sidebar nav li a.active { background-color: var(--accent-green); color: #ffffff; }
+        .sidebar nav li a i { margin-right: 16px; width: 20px; text-align: center; font-size: 1rem; transition: margin-right 0.3s ease; }
+        .sidebar-footer { margin-top: auto; flex-shrink: 0; }
+        .sidebar-footer a { text-decoration: none; color: inherit; display: block; background-color: #252525; padding: 16px; border-radius: 8px; transition: background-color 0.2s; }
+        .sidebar-footer a:hover { background-color: #333; }
         .sidebar-footer h4 { margin: 0 0 8px 0; color: var(--accent-green); font-size: 0.9rem; }
         .sidebar-footer p { margin: 0; font-size: 0.8rem; color: var(--secondary-text); line-height: 1.5; }
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        header {
-            background-color: var(--surface);
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            flex-shrink: 0;
-        }
-        .header-left .page-title { color: var(--secondary-text); font-size: 0.9rem; margin: 0; }
-        .header-left .header-tabs { margin-top: 12px; }
-        .header-left .tab-link {
-            color: var(--secondary-text);
-            background: none;
-            border: 1px solid #444;
-            padding: 8px 16px;
-            border-radius: 20px;
-            text-decoration: none;
-            margin-right: 8px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .header-left .tab-link:hover { border-color: var(--accent-green); color: var(--primary-text); }
-        .header-left .tab-link.active { background-color: var(--accent-green); border-color: var(--accent-green); color: #fff; }
-        .header-left .tab-link span {
-            background-color: #e53e3e;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.7rem;
-            margin-left: 6px;
-        }
+
+        .main-wrapper { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; overflow-y: hidden; }
+        header { background-color: var(--surface); padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        main { flex-grow: 1; overflow-y: auto; }
+        .main-content-inner { padding: 32px; }
+        
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .header-left .page-title { color: var(--primary-text); font-size: 1.1rem; margin: 0; }
         .header-right { display: flex; align-items: center; gap: 24px; }
         .search-bar { display: flex; align-items: center; background-color: #333; border-radius: 8px; padding: 0 4px 0 12px; }
         .search-bar input { background: none; border: none; color: var(--primary-text); padding: 10px 8px; outline: none; }
-        .search-bar input::placeholder { color: var(--secondary-text); }
-        .search-bar button { background: var(--accent-green); border: none; color: white; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; }
         .user-menu { display: flex; align-items: center; gap: 20px; }
-        .user-menu i, .user-menu a { font-size: 1.2rem; color: var(--secondary-text); cursor: pointer; text-decoration: none; }
-        .user-menu .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--accent-green); }
-        main {
-            padding: 32px;
-            background-color: var(--background);
-            flex-grow: 1;
-            overflow-y: auto;
+        .user-menu i, .user-menu a { font-size: 1.2rem; color: var(--secondary-text); text-decoration: none; }
+        .user-menu .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--accent-green); object-fit: cover; }
+        
+        .messages-container { padding: 32px 32px 0 32px; }
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 15px; color: #fff; }
+        .alert-success { background-color: var(--accent-green); }
+        .alert-error { background-color: var(--accent-red); }
+
+        body.sidebar-collapsed .sidebar { width: var(--sidebar-width-collapsed); padding: 24px 16px; }
+        body.sidebar-collapsed .sidebar-header { justify-content: center; }
+        body.sidebar-collapsed .logo-container { gap: 0; }
+        body.sidebar-collapsed .logo-text,
+        body.sidebar-collapsed .sidebar nav li a span,
+        body.sidebar-collapsed .sidebar-footer { display: none; }
+        body.sidebar-collapsed .sidebar nav li a i { margin-right: 0; font-size: 1.3rem; }
+        
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; transform: translateX(-100%); }
+            .main-wrapper { width: 100%; }
+            #sidebar-toggle-desktop { display: none; }
+            #sidebar-toggle-mobile { display: block !important; }
+            .header-right .search-bar { display: none; }
+            body.sidebar-collapsed .sidebar { transform: translateX(-100%); }
+            body.sidebar-mobile-open .sidebar { transform: translateX(0); }
+            .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; display: none; }
+            body.sidebar-mobile-open .sidebar-overlay { display: block; }
         }
     </style>
 </head>
-<body>
+<body class="{% if request.COOKIES.sidebarState == 'collapsed' %}sidebar-collapsed{% endif %}">
     <div class="app-container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <a href="#" class="hamburger-menu"><i class="fas fa-bars"></i></a>
+                <a href="/dashboard/" class="logo-container">
+                    <img src="{% static 'img/franciscoLogo.png' %}" alt="Logotipo Francisco Embalagens">
+                </a>
+                <a class="hamburger-menu" id="sidebar-toggle-desktop"><i class="fas fa-bars"></i></a>
             </div>
             <nav>
                 <ul>
-                    {# Corrigido: Usando 'dashboard:main' e 'dashboard:search_results' #}
-                    <li><a href="{% url 'dashboard:main' %}" class="{% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}"><i class="fas fa-chart-pie"></i> Dashboard</a></li> {# <--- CORRIGIDO #}
-                    <li><a href="{% url 'products:product_list' %}" class="{% if request.resolver_match.app_name == 'products' %}active{% endif %}"><i class="fas fa-box-open"></i> Produtos</a></li>
-                    <li><a href="{% url 'categories:category_list' %}" class="{% if request.resolver_match.app_name == 'categories' %}active{% endif %}"><i class="fas fa-tags"></i> Categorias</a></li>
-                    <li><a href="{% url 'customers:customer_list' %}" class="{% if request.resolver_match.app_name == 'customers' %}active{% endif %}"><i class="fas fa-user-friends"></i> Clientes</a></li>
-                    <li><a href="{% url 'suppliers:supplier_list' %}" class="{% if request.resolver_match.app_name == 'suppliers' %}active{% endif %}"><i class="fas fa-truck"></i> Fornecedores</a></li>
-                    <li><a href="{% url 'users:user_list' %}" class="{% if request.resolver_match.app_name == 'users' %}active{% endif %}"><i class="fas fa-users-cog"></i> Usuários</a></li>
-                    <li><a href="{% url 'production:kanban_board' %}" class="{% if request.resolver_match.app_name == 'production' %}active{% endif %}"><i class="fas fa-cogs"></i> Produção</a></li>
-                    <li><a href="{% url 'sales:sale_list' %}" class="{% if request.resolver_match.app_name == 'sales' %}active{% endif %}"><i class="fas fa-chart-line"></i> Vendas</a></li>
-                    <li><a href="{% url 'inventory:inventory_list' %}" class="{% if request.resolver_match.app_name == 'inventory' %}active{% endif %}"><i class="fas fa-boxes-stacked"></i> Estoque</a></li>
-                    <li><a href="{% url 'finance:record_list' %}" class="{% if request.resolver_match.app_name == 'finance' %}active{% endif %}"><i class="fas fa-dollar-sign"></i> Financeiro</a></li>
+                    <li><a href="/dashboard/" class="{% if request.resolver_match.view_name == 'dashboard_view' %}active{% endif %}"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+                    <li><a href="{% url 'products:product_list' %}" class="{% if request.resolver_match.app_name == 'products' %}active{% endif %}"><i class="fas fa-box-open"></i> <span>Produtos</span></a></li>
+                    <li><a href="{% url 'categories:category_list' %}" class="{% if request.resolver_match.app_name == 'categories' %}active{% endif %}"><i class="fas fa-tags"></i> <span>Categorias</span></a></li>
+                    <li><a href="{% url 'customers:customer_list' %}" class="{% if request.resolver_match.app_name == 'customers' %}active{% endif %}"><i class="fas fa-user-friends"></i> <span>Clientes</span></a></li>
+                    <li><a href="{% url 'suppliers:supplier_list' %}" class="{% if request.resolver_match.app_name == 'suppliers' %}active{% endif %}"><i class="fas fa-truck"></i> <span>Fornecedores</span></a></li>
+                    <li><a href="{% url 'users:user_list' %}" class="{% if request.resolver_match.app_name == 'users' %}active{% endif %}"><i class="fas fa-users-cog"></i> <span>Usuários</span></a></li>
+                    <li><a href="{% url 'production:kanban_board' %}" class="{% if request.resolver_match.app_name == 'production' %}active{% endif %}"><i class="fas fa-cogs"></i> <span>Produção</span></a></li>
+                    <li><a href="{% url 'sales:sale_list' %}" class="{% if request.resolver_match.app_name == 'sales' %}active{% endif %}"><i class="fas fa-chart-line"></i> <span>Vendas</span></a></li>
+                    <li><a href="{% url 'inventory:inventory_list' %}" class="{% if request.resolver_match.app_name == 'inventory' %}active{% endif %}"><i class="fas fa-boxes-stacked"></i> <span>Estoque</span></a></li>
+                    <li><a href="{% url 'finance:record_list' %}" class="{% if request.resolver_match.app_name == 'finance' %}active{% endif %}"><i class="fas fa-dollar-sign"></i> <span>Financeiro</span></a></li>
+                    <li><a href="{% url 'logs:log_list' %}" class="{% if request.resolver_match.app_name == 'logs' %}active{% endif %}"><i class="fas fa-history"></i> <span>Logs</span></a></li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <h4>Seu Relatório Mensal</h4>
-                <p>Veja as informações sobre seus negócios, prós e contras.</p>
+                <a href="{% url 'finance:monthly_report' %}">
+                    <h4>Seu Relatório Mensal</h4>
+                    <p>Veja as informações sobre seus negócios, prós e contras.</p>
+                </a>
             </div>
         </aside>
 
-        <div class="main-content">
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <div class="main-wrapper">
             <header>
                 <div class="header-left">
-                    <h3 class="page-title">Início</h3>
-                    <div class="header-tabs">
-                        {# Corrigido: Usando 'dashboard:main' #}
-                        <a href="{% url 'dashboard:main' %}" class="tab-link active">Visão Geral</a> {# <--- CORRIGIDO #}
-                        {% if notification_count > 0 %}
-                            <a href="#" class="tab-link">Alertas <span>{{ notification_count }}</span></a>
-                        {% else %}
-                            <a href="#" class="tab-link">Alertas</a>
-                        {% endif %}
-                    </div>
+                    <a class="hamburger-menu" id="sidebar-toggle-mobile" style="display: none;"><i class="fas fa-bars"></i></a>
+                    <h3 class="page-title">{% block page_title %}Dashboard{% endblock %}</h3>
                 </div>
                 <div class="header-right">
-                    {# Corrigido: Usando 'dashboard:search_results' #}
-                    <form action="{% url 'dashboard:search_results' %}" method="get" class="search-bar"> {# <--- CORRIGIDO #}
-                        <input type="text" name="q" placeholder="Pesquisar por algo..." value="{{ request.GET.q }}">
+                    <form action="{% url 'dashboard:search_results' %}" method="get" class="search-bar">
+                        <input type="text" name="q" placeholder="Pesquisar..." value="{{ request.GET.q }}">
                         <button type="submit"><i class="fas fa-search"></i></button>
                     </form>
                     <div class="user-menu">
-                        <a href="{% url 'accounts:profile' %}" title="Configurações"><i class="fas fa-cog"></i></a> {# <--- Corrigido (se 'profile' for em 'accounts') #}
-                        <div class="avatar"></div>
-                        <form action="{% url 'accounts:logout' %}" method="post" style="display: inline; margin: 0; padding: 0;"> {# <--- Corrigido #}
+                        <a href="{% url 'users:user_update' request.user.pk %}" title="Meu Perfil"><i class="fas fa-user-cog"></i></a>
+                        {% if user_profile.photo %}<img src="{{ user_profile.photo.url }}" class="avatar" alt="Foto de Perfil">{% else %}<div class="avatar"></div>{% endif %}
+                        <form action="{% url 'accounts:logout' %}" method="post" style="display: flex;">
                             {% csrf_token %}
-                            <button type="submit" title="Sair" style="background: none; border: none; cursor: pointer; padding: 0; vertical-align: middle;">
-                                <i class="fas fa-sign-out-alt" style="font-size: 1.2rem; color: var(--secondary-text);"></i>
-                            </button>
+                            <button type="submit" title="Sair" style="background:none; border:none; cursor:pointer; padding:0;"><i class="fas fa-sign-out-alt"></i></button>
                         </form>
                     </div>
                 </div>
             </header>
             <main>
-                {% if messages %}
-                    <div class="messages">
-                        {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            {{ message }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                {% block content %}
-                {% endblock %}
+                <div class="messages-container">
+                    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+                </div>
+                <div class="main-content-inner">
+                    {% block content %}{% endblock %}
+                </div>
             </main>
         </div>
     </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebarToggleDesktop = document.getElementById('sidebar-toggle-desktop');
+    const sidebarToggleMobile = document.getElementById('sidebar-toggle-mobile');
+    const body = document.body;
+    const overlay = document.getElementById('sidebar-overlay');
+    const saveState = (state) => { document.cookie = `sidebarState=${state}; max-age=31536000; path=/`; };
+    const toggleDesktop = () => { body.classList.toggle('sidebar-collapsed'); saveState(body.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded'); };
+    const toggleMobile = () => { body.classList.toggle('sidebar-mobile-open'); };
+    const checkScreenSize = () => { const isMobile = window.innerWidth <= 768; if (sidebarToggleDesktop) sidebarToggleDesktop.style.display = isMobile ? 'none' : 'block'; if (sidebarToggleMobile) sidebarToggleMobile.style.display = isMobile ? 'block' : 'none'; if (!isMobile) body.classList.remove('sidebar-mobile-open'); };
+    if (sidebarToggleDesktop) sidebarToggleDesktop.addEventListener('click', toggleDesktop);
+    if (sidebarToggleMobile) sidebarToggleMobile.addEventListener('click', toggleMobile);
+    if (overlay) overlay.addEventListener('click', toggleMobile);
+    window.addEventListener('resize', checkScreenSize);
+    checkScreenSize();
+});
+</script>
 </body>
 </html>

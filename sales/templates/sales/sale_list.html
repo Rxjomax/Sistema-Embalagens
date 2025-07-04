@@ -2,62 +2,88 @@
 
 {% block content %}
 <style>
-  .page-container {
-    /* Um container para centralizar e embelezar o conteúdo */
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 40px;
-    text-align: center;
-    max-width: 650px; /* Limita a largura para melhor leitura */
-    margin: 60px auto; /* Centraliza o container na página */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
+    .page-container {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 40px;
+        text-align: center;
+        max-width: 800px; /* Aumentei um pouco para caber os 3 botões confortavelmente */
+        margin: 60px auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .page-title {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--primary-text);
+        margin-bottom: 16px;
+    }
+    .page-description {
+        font-size: 1rem;
+        color: var(--secondary-text);
+        margin-bottom: 32px;
+        line-height: 1.6;
+    }
 
-  .page-title {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: var(--primary-text);
-    margin-bottom: 16px;
-  }
-
-  .page-description {
-    font-size: 1rem;
-    color: var(--secondary-text);
-    margin-bottom: 32px;
-    line-height: 1.6;
-  }
-
-  .btn-add {
-    background-color: var(--accent-green);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .btn-add:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(22, 163, 74, 0.3);
-  }
+    /* Estilos para os botões de ação */
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .btn-action {
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease-in-out;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .btn-primary {
+        background-color: var(--accent-green);
+        color: white;
+    }
+    .btn-secondary {
+        background-color: var(--accent-blue);
+        color: white;
+    }
+    /* --- NOVO ESTILO PARA O BOTÃO DE CLIENTE --- */
+    .btn-tertiary {
+        background-color: #8b5cf6; /* Roxo, para combinar com o ícone de Clientes */
+        color: white;
+    }
 </style>
 
 <div class="page-container">
-  <h2 class="page-title">Ponto de Venda</h2>
-  <p class="page-description">
-    Este é o seu ponto de partida para novas vendas. Clique no botão abaixo para registrar um novo pedido, selecionar produtos e clientes. Ao finalizar, o sistema criará a ordem de produção e dará baixa no estoque automaticamente.
-  </p>
+    <h2 class="page-title">Ponto de Venda</h2>
+    <p class="page-description">
+        Este é o seu ponto de partida para novas vendas e cadastros. Use os atalhos abaixo para agilizar seu trabalho.
+    </p>
 
-  <a href="{% url 'sales:sale_add' %}" class="btn-add">
-    <i class="fas fa-plus"></i>
-    <span>Registrar Nova Venda</span>
-  </a>
+    <div class="button-group">
+        <a href="{% url 'sales:sale_add' %}" class="btn-action btn-primary">
+            <i class="fas fa-dollar-sign"></i>
+            <span>Registrar Nova Venda</span>
+        </a>
+        <a href="{% url 'products:product_add' %}" class="btn-action btn-secondary">
+            <i class="fas fa-box-open"></i>
+            <span>Adicionar Produto</span>
+        </a>
+        <a href="{% url 'customers:customer_add' %}" class="btn-action btn-tertiary">
+            <i class="fas fa-user-plus"></i>
+            <span>Adicionar Cliente</span>
+        </a>
+    </div>
 </div>
 
 {% endblock %}

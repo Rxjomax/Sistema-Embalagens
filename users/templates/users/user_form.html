@@ -2,6 +2,7 @@
 
 {% block content %}
 <style>
+    /* Seus estilos existentes... */
     .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 800px; margin: auto; }
     .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -10,82 +11,108 @@
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
     .form-control { width: 100%; padding: 12px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
     .form-control[readonly] { background-color: #2a2a2a; color: var(--secondary-text); }
-    .form-actions { margin-top: 32px; display: flex; gap: 16px; }
+    .form-actions { margin-top: 32px; display: flex; justify-content: flex-end; gap: 16px; }
     .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
-
+    
+    /* Estilos da funcionalidade de foto */
     .photo-preview-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-    #photo-preview, #video-preview { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; background-color: #333; border: 2px dashed #555; }
+    #photo-preview { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; background-color: #333; border: 2px solid #555; }
     #photo-preview:not([src]), #photo-preview[src=""] { display: none; }
-    #video-preview { display: none; }
+    #video-preview { width: 150px; height: 150px; border-radius: 8px; object-fit: cover; display: none; }
     .camera-controls button { background: none; border: 1px solid var(--secondary-text); color: var(--secondary-text); padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+
+    /* Estilo para as mensagens de erro */
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0 0;
+        color: #ef4444;
+        font-size: 0.9rem;
+    }
 </style>
 
 <div class="form-container">
     <h2 class="form-title">{{ page_title }}</h2>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="form-grid">
+        
+        {% if user_form.non_field_errors %}<div class="form-group errorlist">{{ user_form.non_field_errors }}</div>{% endif %}
+        {% if profile_form.non_field_errors %}<div class="form-group errorlist">{{ profile_form.non_field_errors }}</div>{% endif %}
 
+        <div class="form-grid">
             {% if is_edit_form %}
                 <div class="form-group">
-                    <label for="{{ user_form.first_name.id_for_label }}">Primeiro Nome</label>
+                    <label for="{{ user_form.first_name.id_for_label }}">{{ user_form.first_name.label }}</label>
                     {{ user_form.first_name }}
+                    {{ user_form.first_name.errors }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ user_form.last_name.id_for_label }}">Sobrenome</label>
+                    <label for="{{ user_form.last_name.id_for_label }}">{{ user_form.last_name.label }}</label>
                     {{ user_form.last_name }}
+                    {{ user_form.last_name.errors }}
                 </div>
             {% else %}
                 <div class="form-group full-width">
-                    <label for="{{ user_form.full_name.id_for_label }}">Nome Completo</label>
+                    <label for="{{ user_form.full_name.id_for_label }}">{{ user_form.full_name.label }}</label>
                     {{ user_form.full_name }}
+                    {{ user_form.full_name.errors }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ user_form.first_name.id_for_label }}">Primeiro Nome</label>
+                    <label for="{{ user_form.first_name.id_for_label }}">{{ user_form.first_name.label }}</label>
                     {{ user_form.first_name }}
+                    {{ user_form.first_name.errors }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ user_form.last_name.id_for_label }}">Sobrenome</label>
+                    <label for="{{ user_form.last_name.id_for_label }}">{{ user_form.last_name.label }}</label>
                     {{ user_form.last_name }}
+                    {{ user_form.last_name.errors }}
                 </div>
             {% endif %}
             
             <div class="form-group full-width">
-                <label for="{{ user_form.email.id_for_label }}">Email (para login)</label>
+                <label for="{{ user_form.email.id_for_label }}">{{ user_form.email.label }}</label>
                 {{ user_form.email }}
+                {{ user_form.email.errors }}
             </div>
             <div class="form-group">
-                <label for="{{ user_form.username.id_for_label }}">Nome de Usuário</label>
+                <label for="{{ user_form.username.id_for_label }}">{{ user_form.username.label }}</label>
                 {{ user_form.username }}
+                {{ user_form.username.errors }}
             </div>
             
             {% if not is_edit_form %}
             <div class="form-group">
-                <label for="{{ user_form.password.id_for_label }}">Senha</label>
+                <label for="{{ user_form.password.id_for_label }}">{{ user_form.password.label }}</label>
                 {{ user_form.password }}
+                {{ user_form.password.errors }}
             </div>
             {% endif %}
 
             <div class="form-group">
-                <label for="{{ profile_form.code.id_for_label }}">Código</label>
+                <label for="{{ profile_form.code.id_for_label }}">{{ profile_form.code.label }}</label>
                 {{ profile_form.code }}
+                {{ profile_form.code.errors }}
             </div>
             <div class="form-group">
-                <label for="{{ profile_form.phone.id_for_label }}">Telefone</label>
+                <label for="{{ profile_form.phone.id_for_label }}">{{ profile_form.phone.label }}</label>
                 {{ profile_form.phone }}
+                {{ profile_form.phone.errors }}
             </div>
             <div class="form-group">
-                <label for="{{ profile_form.cpf.id_for_label }}">CPF</label>
+                <label for="{{ profile_form.cpf.id_for_label }}">{{ profile_form.cpf.label }}</label>
                 {{ profile_form.cpf }}
+                {{ profile_form.cpf.errors }}
             </div>
             <div class="form-group">
-                <label for="{{ user_form.group.id_for_label }}">Cargo</label>
+                <label for="{{ user_form.group.id_for_label }}">{{ user_form.group.label }}</label>
                 {{ user_form.group }}
+                {{ user_form.group.errors }}
             </div>
+            
             <div class="form-group full-width photo-preview-container">
-                <label for="{{ profile_form.photo.id_for_label }}">Foto de Perfil</label>
+                <label for="{{ profile_form.photo.id_for_label }}">{{ profile_form.photo.label }}</label>
                 
                 {% if profile_form.instance.photo and profile_form.instance.photo.url %}
                     <img id="photo-preview" src="{{ profile_form.instance.photo.url }}">
@@ -94,7 +121,10 @@
                 {% endif %}
 
                 <video id="video-preview" autoplay></video>
+                
                 {{ profile_form.photo }}
+                {{ profile_form.photo.errors }}
+
                 <div class="camera-controls">
                     <button type="button" id="start-camera">Habilitar Câmera</button>
                     <button type="button" id="click-photo" style="display:none;">Tirar Foto</button>
@@ -110,91 +140,6 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Automação de Nomes e Email
-    const fullNameInput = document.getElementById('id_full_name');
-    const firstNameInput = document.getElementById('id_first_name');
-    const lastNameInput = document.getElementById('id_last_name');
-    const emailInput = document.getElementById('id_email');
-    const usernameInput = document.getElementById('id_username');
-
-    if(fullNameInput) {
-        fullNameInput.addEventListener('input', function() {
-            const names = this.value.trim().split(' ').filter(n => n);
-            if (names.length > 0) {
-                firstNameInput.value = names[0];
-                lastNameInput.value = names.length > 1 ? names.slice(1).join(' ') : '';
-                
-                const firstName = names[0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const lastName = names.length > 1 ? names[names.length - 1].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : '';
-                
-                if (firstName && lastName) {
-                    const suggestion = `${firstName}.${lastName.charAt(0)}@franciscoembalagens.com.br`;
-                    emailInput.value = suggestion;
-                    usernameInput.value = `${firstName}.${lastName}`;
-                } else if (firstName) {
-                    usernameInput.value = firstName;
-                }
-            }
-        });
-    }
-
-    // Lógica da Câmera
-    const startCameraButton = document.getElementById('start-camera');
-    const clickPhotoButton = document.getElementById('click-photo');
-    const video = document.getElementById('video-preview');
-    const photoInput = document.getElementById('id_photo');
-    const photoPreview = document.getElementById('photo-preview');
-
-    if (startCameraButton) {
-        startCameraButton.addEventListener('click', async function() {
-            video.style.display = 'block';
-            photoPreview.style.display = 'none';
-            clickPhotoButton.style.display = 'inline-block';
-            try {
-                let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                video.srcObject = stream;
-            } catch (err) {
-                console.error("Erro ao aceder à câmera: ", err);
-            }
-        });
-    }
-
-    if (clickPhotoButton) {
-        clickPhotoButton.addEventListener('click', function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            photoPreview.src = canvas.toDataURL('image/jpeg');
-            photoPreview.style.display = 'block';
-            video.style.display = 'none';
-            clickPhotoButton.style.display = 'none';
-            
-            canvas.toBlob(function(blob) {
-                const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                photoInput.files = dataTransfer.files;
-            }, 'image/jpeg');
-        });
-    }
-
-    if (photoInput) {
-        photoInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    photoPreview.src = e.target.result;
-                    photoPreview.style.display = 'block';
-                    video.style.display = 'none';
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-});
+    // ... cole aqui o script que você já tinha ...
 </script>
 {% endblock %}

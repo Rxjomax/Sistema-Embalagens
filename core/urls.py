@@ -23,6 +23,7 @@ urlpatterns = [
     path('estoque/', include('inventory.urls', namespace='inventory')),
     path('vendas/', include('sales.urls', namespace='sales')),
     path('financeiro/', include('finance.urls', namespace='finance')),
+    path('logs/', include('logs.urls', namespace='logs')),
     
     # Esta linha estava duplicada e foi REMOVIDA.
     # path('vendas/', include('sales.urls', namespace='sales')), 

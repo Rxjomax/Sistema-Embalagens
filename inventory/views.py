@@ -1,8 +1,11 @@
+# Ficheiro: inventory/views.py
+
 from django.views.generic import ListView
 from django.shortcuts import render, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q # 1. Importamos o 'Q' para a busca
 
 from products.models import Product
 from .forms import StockMovementForm
@@ -13,6 +16,29 @@ class InventoryListView(LoginRequiredMixin, ListView):
     template_name = 'inventory/inventory_list.html'
     context_object_name = 'products'
     paginate_by = 20
+
+    # ========================================================
+    # ========= LÓGICA DE BUSCA ADICIONADA ABAIXO =========
+    # ========================================================
+    def get_queryset(self):
+        # Começa com todos os produtos
+        queryset = super().get_queryset().order_by('name')
+        # Pega o termo de busca da URL
+        query = self.request.GET.get('q', '').strip()
+
+        # Se houver um termo de busca, filtra o queryset
+        if query:
+            queryset = queryset.filter(
+                Q(name__icontains=query) | Q(code__icontains=query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        # Envia o termo de busca de volta para o template
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        return context
+
 
 @login_required
 def create_stock_movement(request, movement_type):

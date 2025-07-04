@@ -1,0 +1,42 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    /* Estilos da tabela (reutilizados) */
+    .table-container { background-color: var(--card-bg); border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); }
+    .table-header { margin-bottom: 24px; }
+    .table-title { margin: 0; font-size: 1.2rem; }
+    .styled-table { width: 100%; border-collapse: collapse; }
+    .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+</style>
+
+<div class="table-container">
+    <div class="table-header">
+        <h2 class="table-title">Registros de Atividade do Sistema</h2>
+    </div>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>Data e Hora</th>
+                <th>Usuário</th>
+                <th>Ação</th>
+                <th>Descrição</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
+                <td>{{ log.user.username|default:"Sistema" }}</td>
+                <td>{{ log.action }}</td>
+                <td>{{ log.description }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 20px;">Nenhum registro de log encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+{% endblock %}

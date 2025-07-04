@@ -1,3 +1,5 @@
+# Ficheiro: sales/forms.py (VERSÃO SIMPLIFICADA)
+
 from django import forms
 from .models import Sale, SaleItem
 from products.models import Product
@@ -11,7 +13,6 @@ class SaleForm(forms.ModelForm):
         }
 
 class SaleItemForm(forms.ModelForm):
-    # Usamos um campo especial para buscar produtos e mostrar o preço
     product = forms.ModelChoiceField(
         queryset=Product.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control product-selector'})
@@ -25,8 +26,14 @@ class SaleItemForm(forms.ModelForm):
             'unit_price': forms.NumberInput(attrs={'class': 'form-control price-input', 'readonly': 'readonly'}),
         }
 
-# Criamos um FormSet que permite ter múltiplos SaleItemForms na mesma página
+# ================================================================
+# ========= FORMSET SIMPLIFICADO ABAIXO =========
+# ================================================================
 SaleItemFormSet = forms.inlineformset_factory(
-    Sale, SaleItem, form=SaleItemForm,
-    extra=1, can_delete=True, min_num=1
+    Sale,
+    SaleItem,
+    form=SaleItemForm,
+    extra=1,  # Pede explicitamente UMA linha extra
+    can_delete=True
+    # O parâmetro min_num foi removido para eliminar qualquer conflito
 )

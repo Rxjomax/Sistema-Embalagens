@@ -2,7 +2,7 @@
 
 {% block content %}
 <style>
-    /* Estilos existentes */
+    /* Seus estilos existentes... */
     .dashboard-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -38,7 +38,7 @@
         color: var(--primary-text);
     }
     .card-body {
-        flex-grow: 1; /* Faz o corpo do card crescer */
+        flex-grow: 1;
     }
     .card-body p {
         margin: 8px 0;
@@ -53,8 +53,6 @@
         font-size: 1.2rem;
         color: var(--primary-text);
     }
-
-    /* --- ESTILOS DO CARD DE ALERTA ATUALIZADOS --- */
     .alert-card {
         border-left: 5px solid #f59e0b;
     }
@@ -67,7 +65,7 @@
         text-align: right;
     }
     .alert-stock-details .current-stock {
-        color: #ef4444; /* Vermelho para o estoque atual */
+        color: #ef4444;
         font-weight: bold;
     }
 </style>
@@ -132,8 +130,7 @@
         </div>
         <div class="card-body">
             <p>Receita (Vendas Pagas): <span>R$ {{ total_revenue|floatformat:2 }}</span></p>
-            <p>Despesa: <span>R$ {{ total_expenses|floatformat:2 }}</span></p>
-        </div>
+            </div>
     </div>
 </div>
 {% endblock %}

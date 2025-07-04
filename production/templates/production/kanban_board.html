@@ -2,66 +2,102 @@
 
 {% block content %}
 <style>
-    /* Estilos Gerais (sem alterações) */
-    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    /* Estilos Gerais */
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 16px; }
     .table-title { margin: 0; font-size: 1.2rem; }
-    .btn-add { background-color: var(--accent-green); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+    .header-actions { display: flex; gap: 10px; }
+    .btn-add, .btn-filter, .btn-clear-filter {
+        background-color: var(--accent-green); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
+    }
+    .btn-filter { background-color: var(--accent-blue); }
+    .btn-clear-filter { background-color: #555; font-size: 0.9rem; padding: 8px 16px; }
+
+    /* Estilos dos Filtros Recolhíveis */
+    .filter-container {
+        display: none; /* COMEÇA ESCONDIDO */
+        gap: 20px; background-color: var(--card-bg); padding: 20px; border-radius: 12px;
+        margin-bottom: 24px; border: 1px solid var(--border-color); align-items: flex-end;
+    }
+    .filter-container.active { display: flex; }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .filter-group label { font-size: 0.9rem; font-weight: 500; color: var(--secondary-text); }
+    .filter-group select { padding: 10px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
     
-    /* Kanban (sem alterações) */
-    .kanban-board-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; min-height: 75vh; }
-    .kanban-column { min-width: 320px; width: 320px; background-color: var(--card-bg); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; border-top: 4px solid; }
+    /* Estilos Kanban */
+    .kanban-board-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
+    .kanban-column { min-width: 320px; width: 320px; background-color: var(--card-bg); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; border-top: 4px solid; transition: min-width 0.3s ease, width 0.3s ease; }
+    
+    /* --- CORES DAS COLUNAS RESTAURADAS --- */
     .kanban-column:nth-child(1) { border-top-color: #4A90E2; }
     .kanban-column:nth-child(2) { border-top-color: #50E3C2; }
     .kanban-column:nth-child(3) { border-top-color: #F5A623; }
     .kanban-column:nth-child(4) { border-top-color: #BD10E0; }
-    .kanban-column-header { padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); }
-    .kanban-column-header h3 { margin: 0; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
-    .stage-actions { margin-left: auto; margin-right: 15px; display: none; opacity: 0.7; }
-    .kanban-column:hover .stage-actions { display: inline-block; }
-    .stage-actions a { color: var(--secondary-text); text-decoration: none; margin-left: 10px; font-size: 0.9rem; }
-    .kanban-cards { flex-grow: 1; min-height: 100px; list-style: none; padding: 5px; border-radius: 8px; background-color: #222; }
-    .kanban-card { background-color: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: grab; position: relative; }
-    .card-details-icon { position: absolute; top: 10px; right: 10px; color: var(--secondary-text); cursor: pointer; font-size: 0.9rem; padding: 5px; z-index: 2; }
-    .card-details-icon:hover { color: var(--primary-text); }
-    .dragging { opacity: 0.5; }
 
-    /* Estilos do Modal (sem alterações) */
+    .kanban-column-header { padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .kanban-column-header h3 { margin: 0; font-size: 1.1rem; }
+    .kanban-cards { flex-grow: 1; min-height: 100px; list-style: none; padding: 5px; border-radius: 8px; background-color: #222; transition: all 0.3s ease; }
+    .kanban-card { background-color: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: grab; position: relative; }
+    .kanban-card.hidden { display: none; }
+    .dragging { opacity: 0.5; }
+    .card-details-icon { position: absolute; top: 10px; right: 10px; color: var(--secondary-text); cursor: pointer; font-size: 0.9rem; padding: 5px; z-index: 2; }
+    
+    /* Estilos para Minimizar Colunas */
+    .toggle-column-btn { background: none; border: none; color: var(--secondary-text); cursor: pointer; padding: 5px; font-size: 1rem; }
+    .kanban-column.minimized { min-width: 200px; width: 200px; }
+    .kanban-column.minimized .kanban-cards,
+    .kanban-column.minimized .card-details-icon { display: none; }
+    .kanban-column.minimized .kanban-column-header h3 { width: 100%; }
+
+    /* Estilos do Modal */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
     .modal-overlay.show { display: flex; }
-    .modal-content { background-color: #2d3748; color: #e2e8f0; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; position: relative; border-top: 4px solid #4A90E2; }
+    .modal-content { background-color: #2d3748; color: #e2e8f0; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px; }
-    .modal-header h2 { margin: 0; font-size: 1.4rem; }
-    .modal-close { background: none; border: none; color: var(--secondary-text); font-size: 1.8rem; cursor: pointer; line-height: 1; }
+    .modal-close { background: none; border: none; color: var(--secondary-text); font-size: 1.8rem; cursor: pointer; }
     .modal-details .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-    .modal-details .detail-item strong { display: block; color: var(--secondary-text); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 5px; }
+    .modal-details .detail-item strong { display: block; color: var(--secondary-text); font-size: 0.8rem; margin-bottom: 5px; }
     .modal-details .detail-item p, .modal-details .detail-item a { margin: 0; font-size: 1.05rem; color: #fff; text-decoration: none; }
-    .modal-details .detail-item a:hover { text-decoration: underline; }
-    .modal-details .detail-item-full { margin-top: 20px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-    .modal-actions .btn-add { font-size: 0.9rem; padding: 8px 18px; }
+    .btn-info { background-color: #4a90e2; padding: 10px 20px; text-decoration: none; color: white; border-radius: 8px; }
+    .btn-danger { background-color: #e53e3e; padding: 10px 20px; text-decoration: none; color: white; border-radius: 8px; }
 </style>
 
 <div class="table-header">
     <h2 class="table-title">Quadro de Produção</h2>
-    <a href="{% url 'production:order_add' %}" class="btn-add"><i class="fas fa-plus"></i> Nova Ordem</a>
+    <div class="header-actions">
+        <button id="toggle-filter-btn" class="btn-filter"><i class="fas fa-filter"></i> Filtros</button>
+        <a href="{% url 'production:order_add' %}" class="btn-add"><i class="fas fa-plus"></i> Nova Ordem</a>
+    </div>
+</div>
+
+<div class="filter-container" id="filter-container">
+    <div class="filter-group">
+        <label for="customer-filter">Filtrar por Cliente</label>
+        <select id="customer-filter">
+            <option value="">Todos os Clientes</option>
+            {% for customer in all_customers %}<option value="{{ customer.pk }}">{{ customer.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="filter-group">
+        <label for="product-filter">Filtrar por Produto</label>
+        <select id="product-filter">
+            <option value="">Todos os Produtos</option>
+            {% for product in all_products %}<option value="{{ product.pk }}">{{ product.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <button id="clear-filter-btn" class="btn-clear-filter">Limpar</button>
 </div>
 
 <div class="kanban-board-container" id="kanban-board">
     {% for stage in stages %}
     <div class="kanban-column" id="stage-{{ stage.id }}">
         <div class="kanban-column-header">
-            <h3>
-                {{ stage.name }}
-                <div class="stage-actions">
-                    <a href="{% url 'production:stage_update' stage.pk %}" title="Renomear Estágio"><i class="fas fa-pencil-alt"></i></a>
-                    <a href="{% url 'production:stage_delete' stage.pk %}" title="Excluir Estágio"><i class="fas fa-trash-alt"></i></a>
-                </div>
-                <span class="card-count" id="count-{{ stage.id }}">{{ stage.orders_list|length }}</span>
-            </h3>
+            <h3>{{ stage.name }} <span class="card-count" id="count-{{ stage.id }}">{{ stage.orders_list|length }}</span></h3>
+            <button class="toggle-column-btn" title="Recolher/Expandir"><i class="fas fa-minus"></i></button>
         </div>
         <ul class="kanban-cards" data-stage-id="{{ stage.id }}">
             {% for order in stage.orders_list %}
-            <li class="kanban-card" draggable="true" data-order-id="{{ order.id }}">
+            <li class="kanban-card" draggable="true" data-order-id="{{ order.id }}" data-customer-id="{{ order.customer.pk|default:'' }}" data-product-id="{{ order.product.pk|default:'' }}">
                 <span class="card-details-icon" title="Ver Detalhes"><i class="fas fa-eye"></i></span>
                 <h4 class="card-title">{{ order.product.name }} (x{{ order.quantity }})</h4>
                 <p class="card-info"><i class="fas fa-hashtag"></i>{{ order.order_number }}</p>
@@ -88,153 +124,55 @@
                 <div class="detail-item"><strong>Data de Criação</strong><p id="modal-created-date"></p></div>
                 <div class="detail-item"><strong>Vendedor</strong><p id="modal-seller"></p></div>
             </div>
-            <div class="detail-item-full"><strong>Observações</strong><p id="modal-notes" style="white-space: pre-wrap; background-color: #222; padding: 10px; border-radius: 6px; min-height: 50px;"></p></div>
+            <div class="detail-item-full" style="margin-top: 15px;"><strong>Observações</strong><p id="modal-notes" style="background-color: #222; padding: 10px; border-radius: 6px; min-height: 40px;"></p></div>
         </div>
         <div class="modal-actions">
-            <a href="#" id="modal-edit-btn" class="btn-add" style="background-color: #4a90e2;">Editar</a>
-            <a href="#" id="modal-delete-btn" class="btn-add" style="background-color: #d0021b;">Excluir</a>
+            <a href="#" id="modal-edit-btn" class="btn-info">Editar</a>
+            <a href="#" id="modal-delete-btn" class="btn-danger">Excluir</a>
         </div>
     </div>
 </div>
 
 <script>
     function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
+        let cookieValue = null; if (document.cookie && document.cookie !== '') { const cookies = document.cookie.split(';'); for (let i = 0; i < cookies.length; i++) { const cookie = cookies[i].trim(); if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; } } } return cookieValue;
     }
     const csrftoken = getCookie('csrftoken');
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function() {
         const board = document.getElementById('kanban-board');
-        const modalOverlay = document.getElementById('order-details-modal');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
+        const columns = document.querySelectorAll('.kanban-cards');
         let draggedCard = null;
 
-        // ==========================================================
-        // ========= LÓGICA DE DRAG AND DROP RESTAURADA ABAIXO ========
-        // ==========================================================
+        // --- LÓGICA DE DRAG-AND-DROP ---
+        board.addEventListener('dragstart', e => { if (e.target.classList.contains('kanban-card')) { draggedCard = e.target; setTimeout(() => e.target.classList.add('dragging'), 0); } });
+        board.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+        columns.forEach(col => { col.addEventListener('dragover', e => e.preventDefault()); col.addEventListener('drop', e => { e.preventDefault(); if (draggedCard) { col.appendChild(draggedCard); updateCardStage(draggedCard.dataset.orderId, col.dataset.stageId); } }); });
+        function updateCardStage(orderId, stageId) { fetch("{% url 'production:api_update_order_stage' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }, body: JSON.stringify({ 'order_id': orderId, 'stage_id': stageId }) }).then(res => res.json()).then(data => { if (data.status === 'success') { updateCardCounts(); } }); }
 
-        // Inicia o arrastar
-        board.addEventListener('dragstart', event => {
-            if (event.target.classList.contains('kanban-card')) {
-                draggedCard = event.target;
-                setTimeout(() => draggedCard.classList.add('dragging'), 0);
-            }
-        });
+        // --- LÓGICA DOS FILTROS ---
+        const customerFilter = document.getElementById('customer-filter');
+        const productFilter = document.getElementById('product-filter');
+        const toggleFilterBtn = document.getElementById('toggle-filter-btn');
+        const filterContainer = document.getElementById('filter-container');
+        const clearFilterBtn = document.getElementById('clear-filter-btn');
+        function updateCardCounts() { columns.forEach(col => { const countSpan = document.getElementById(`count-${col.dataset.stageId}`); if (countSpan) { countSpan.textContent = col.querySelectorAll('.kanban-card:not(.hidden)').length; } }); }
+        function filterKanbanCards() { const selectedCustomer = customerFilter.value; const selectedProduct = productFilter.value; document.querySelectorAll('.kanban-card').forEach(card => { const customerMatch = (selectedCustomer === "") || (selectedCustomer === card.dataset.customerId); const productMatch = (selectedProduct === "") || (selectedProduct === card.dataset.productId); card.classList.toggle('hidden', !(customerMatch && productMatch)); }); updateCardCounts(); }
+        toggleFilterBtn.addEventListener('click', () => filterContainer.classList.toggle('active'));
+        clearFilterBtn.addEventListener('click', () => { customerFilter.value = ""; productFilter.value = ""; filterKanbanCards(); });
+        customerFilter.addEventListener('change', filterKanbanCards);
+        productFilter.addEventListener('change', filterKanbanCards);
 
-        // Finaliza o arrastar
-        board.addEventListener('dragend', () => {
-            if (draggedCard) {
-                draggedCard.classList.remove('dragging');
-                draggedCard = null;
-            }
-        });
+        // --- LÓGICA DO MODAL ---
+        const modalOverlay = document.getElementById('order-details-modal');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        function openModal(orderId) { fetch(`/producao/api/ordem/${orderId}/detalhes/`).then(res => res.json()).then(data => { document.getElementById('modal-title').innerText = `Detalhes da Ordem #${data.order_number}`; document.getElementById('modal-product').innerText = data.product_name; document.getElementById('modal-quantity').innerText = data.quantity; document.getElementById('modal-customer').innerText = data.customer_name; const saleLink = document.getElementById('modal-sale-link'); saleLink.href = data.sale_url; saleLink.innerText = `Venda #${data.sale_id}`; const createdDate = new Date(data.created_at); document.getElementById('modal-created-date').innerText = createdDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); document.getElementById('modal-seller').innerText = data.seller_name; document.getElementById('modal-notes').innerText = data.notes || 'Nenhuma.'; document.getElementById('modal-edit-btn').href = data.edit_url; document.getElementById('modal-delete-btn').href = data.delete_url; modalOverlay.classList.add('show'); }); }
+        if (modalCloseBtn) { modalCloseBtn.addEventListener('click', () => modalOverlay.classList.remove('show')); }
+        board.addEventListener('click', event => { const detailsIcon = event.target.closest('.card-details-icon'); if (detailsIcon) { const card = detailsIcon.closest('.kanban-card'); if (card) { openModal(card.dataset.orderId); } } });
 
-        const columns = document.querySelectorAll('.kanban-cards');
-        columns.forEach(column => {
-            // Permite que um card seja solto na coluna
-            column.addEventListener('dragover', e => {
-                e.preventDefault();
-                const afterElement = getDragAfterElement(column, e.clientY);
-                if (draggedCard) {
-                    column.insertBefore(draggedCard, afterElement);
-                }
-            });
-
-            // Lida com o evento de soltar o card
-            column.addEventListener('drop', e => {
-                e.preventDefault();
-                if (draggedCard) {
-                    updateCardStage(draggedCard.dataset.orderId, column.dataset.stageId);
-                }
-            });
-        });
-
-        // Função que envia a atualização para o backend
-        function updateCardStage(orderId, stageId) {
-            fetch("{% url 'production:api_update_order_stage' %}", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
-                body: JSON.stringify({ 'order_id': orderId, 'stage_id': stageId })
-            }).then(res => res.json()).then(data => {
-                if (data.status === 'success') {
-                    updateCardCounts(); // Atualiza a contagem de cards
-                } else {
-                    console.error('Falha ao atualizar o estágio:', data.message);
-                }
-            });
-        }
-
-        // Atualiza os números no cabeçalho de cada coluna
-        function updateCardCounts() {
-            columns.forEach(column => {
-                const countSpan = document.getElementById(`count-${column.dataset.stageId}`);
-                if (countSpan) {
-                    countSpan.textContent = column.children.length;
-                }
-            });
-        }
-
-        // Função auxiliar para encontrar a posição correta para inserir o card
-        function getDragAfterElement(column, y) {
-            const draggableElements = [...column.querySelectorAll('.kanban-card:not(.dragging)')];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-
-        // ======================================================
-        // ========= LÓGICA DO MODAL (JÁ ESTAVA CORRETA) ========
-        // ======================================================
-
-        board.addEventListener('click', event => {
-            const detailsIcon = event.target.closest('.card-details-icon');
-            if (detailsIcon) {
-                const card = detailsIcon.closest('.kanban-card');
-                if (card) { openModal(card.dataset.orderId); }
-            }
-        });
-
-        function openModal(orderId) {
-            fetch(`/producao/api/ordem/${orderId}/detalhes/`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('modal-title').innerText = `Detalhes da Ordem #${data.order_number}`;
-                    document.getElementById('modal-product').innerText = data.product_name;
-                    document.getElementById('modal-quantity').innerText = data.quantity;
-                    document.getElementById('modal-customer').innerText = data.customer_name;
-                    const saleLink = document.getElementById('modal-sale-link');
-                    saleLink.href = data.sale_url;
-                    saleLink.innerText = `Venda #${data.sale_id}`;
-                    const createdDate = new Date(data.created_at);
-                    document.getElementById('modal-created-date').innerText = createdDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    document.getElementById('modal-seller').innerText = data.seller_name;
-                    document.getElementById('modal-notes').innerText = data.notes || 'Nenhuma observação.';
-                    document.getElementById('modal-edit-btn').href = data.edit_url;
-                    document.getElementById('modal-delete-btn').href = data.delete_url;
-                    modalOverlay.classList.add('show');
-                })
-                .catch(error => console.error('Erro ao buscar detalhes da ordem:', error));
-        }
-
-        if (modalCloseBtn) modalCloseBtn.addEventListener('click', () => modalOverlay.classList.remove('show'));
-        if (modalOverlay) modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('show'); });
+        // --- LÓGICA DE MINIMIZAR COLUNAS ---
+        const toggleColumnBtns = document.querySelectorAll('.toggle-column-btn');
+        toggleColumnBtns.forEach(btn => { btn.addEventListener('click', function() { const column = this.closest('.kanban-column'); const icon = this.querySelector('i'); column.classList.toggle('minimized'); if (column.classList.contains('minimized')) { icon.classList.replace('fa-minus', 'fa-plus'); } else { icon.classList.replace('fa-plus', 'fa-minus'); } }); });
     });
 </script>
 {% endblock %}

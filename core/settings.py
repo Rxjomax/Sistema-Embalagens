@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     
     # Nossas apps
     'accounts', 'dashboard', 'products', 'users', 'categories',
-    'suppliers', 'customers', 'inventory', 'sales', 'finance', 'production',
+    'suppliers', 'customers', 'inventory', 'sales', 'finance', 'production','logs',
 ]
 
 MIDDLEWARE = [
@@ -43,6 +43,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'logs.middleware.RequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -110,6 +111,11 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 
 # --- 8. Configurações de Segurança Adicionais para Produção ---
 if 'RENDER' in os.environ:

@@ -3,9 +3,10 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Sum, Q, F # 1. Importamos o "F" para comparar campos do modelo
+from django.db.models import Sum, Q, F
 from datetime import timedelta
 
+# Importamos os modelos de que precisamos
 from customers.models import Customer
 from products.models import Product
 from finance.models import FinancialRecord
@@ -13,7 +14,7 @@ from inventory.models import StockMovement
 
 @login_required
 def dashboard_view(request):
-    # --- Cálculos para os Cards (existentes) ---
+    # --- Cálculos para os Cards ---
     total_customers = Customer.objects.count()
     thirty_days_ago = timezone.now() - timedelta(days=30)
     new_customers_last_30_days = Customer.objects.filter(created_at__gte=thirty_days_ago).count()
@@ -23,7 +24,7 @@ def dashboard_view(request):
 
     total_revenue_result = FinancialRecord.objects.filter(status='PAGO').aggregate(total=Sum('sale__total_value'))
     total_revenue = total_revenue_result['total'] or 0
-    total_expenses = 0 # Placeholder, pode ser implementado depois
+    # total_expenses = 0 # Linha removida
 
     current_month = timezone.now().month
     current_year = timezone.now().year
@@ -42,12 +43,9 @@ def dashboard_view(request):
     ).aggregate(total=Sum('quantity'))
     monthly_exits = monthly_exits_result['total'] or 0
 
-    # ================================================================
-    # ========= 2. NOVA LÓGICA PARA ALERTA DE ESTOQUE BAIXO =========
-    # ================================================================
     low_stock_products = Product.objects.filter(
-        minimum_stock__gt=0,  # Apenas produtos onde o estoque mínimo foi definido
-        stock_quantity__lte=F('minimum_stock') # Compara o estoque atual com o mínimo
+        minimum_stock__gt=0,
+        stock_quantity__lte=F('minimum_stock')
     )
 
     context = {
@@ -55,14 +53,12 @@ def dashboard_view(request):
         'new_customers': new_customers_last_30_days,
         'stock_total_items': stock_total_items,
         'total_revenue': total_revenue,
-        'total_expenses': total_expenses,
+        # 'total_expenses': total_expenses, # Linha removida do contexto
         'monthly_entries': monthly_entries,
         'monthly_exits': monthly_exits,
-        # 3. Adicionamos a lista de produtos ao contexto
         'low_stock_products': low_stock_products,
     }
     return render(request, 'dashboard/dashboard.html', context)
-
 # FUNÇÃO DE PESQUISA (sem alterações)
 @login_required
 def search_results_view(request):

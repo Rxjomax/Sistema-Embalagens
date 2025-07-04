@@ -2,6 +2,7 @@
 
 {% block content %}
 <style>
+    /* Seus estilos... */
     .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 800px; margin: auto; }
     .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -9,7 +10,7 @@
     .form-group.full-width { grid-column: 1 / -1; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
     .form-control { width: 100%; padding: 12px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
-    .form-actions { margin-top: 32px; display: flex; gap: 16px; }
+    .form-actions { margin-top: 32px; display: flex; justify-content: flex-end; gap: 16px; }
     .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
@@ -20,46 +21,16 @@
     <form method="post">
         {% csrf_token %}
         <div class="form-grid">
-            <div class="form-group">
-                <label for="{{ form.code.id_for_label }}">Código</label>
-                <input type="text" name="code" id="{{ form.code.id_for_label }}" class="form-control" value="{{ form.code.value|default:'' }}">
-            </div>
-            <div class="form-group full-width">
-                <label for="{{ form.company_name.id_for_label }}">Razão Social</label>
-                <input type="text" name="company_name" id="{{ form.company_name.id_for_label }}" class="form-control" value="{{ form.company_name.value|default:'' }}">
-            </div>
-            <div class="form-group full-width">
-                <label for="{{ form.trade_name.id_for_label }}">Nome Fantasia</label>
-                <input type="text" name="trade_name" id="{{ form.trade_name.id_for_label }}" class="form-control" value="{{ form.trade_name.value|default:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="{{ form.doc_number.id_for_label }}">CPF ou CNPJ</label>
-                <input type="text" name="doc_number" id="{{ form.doc_number.id_for_label }}" class="form-control" value="{{ form.doc_number.value|default:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="{{ form.phone.id_for_label }}">Telefone</label>
-                <input type="text" name="phone" id="{{ form.phone.id_for_label }}" class="form-control" value="{{ form.phone.value|default:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="{{ form.cep.id_for_label }}">CEP</label>
-                <input type="text" name="cep" id="{{ form.cep.id_for_label }}" class="form-control" value="{{ form.cep.value|default:'' }}" placeholder="Digite o CEP e aguarde">
-            </div>
-            <div class="form-group">
-                <label for="{{ form.address.id_for_label }}">Logradouro / Rua</label>
-                <input type="text" name="address" id="{{ form.address.id_for_label }}" class="form-control" value="{{ form.address.value|default:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="{{ form.number.id_for_label }}">Número</label>
-                <input type="text" name="number" id="{{ form.number.id_for_label }}" class="form-control" value="{{ form.number.value|default:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="{{ form.city.id_for_label }}">Cidade</label>
-                <input type="text" name="city" id="{{ form.city.id_for_label }}" class="form-control" value="{{ form.city.value|default:'' }}">
-            </div>
-            <div class="form-group">
-                <label for="{{ form.state.id_for_label }}">UF</label>
-                <input type="text" name="state" id="{{ form.state.id_for_label }}" class="form-control" value="{{ form.state.value|default:'' }}">
-            </div>
+            <div class="form-group">{{ form.code.label_tag }} {{ form.code }}</div>
+            <div class="form-group full-width">{{ form.company_name.label_tag }} {{ form.company_name }}</div>
+            <div class="form-group full-width">{{ form.trade_name.label_tag }} {{ form.trade_name }}</div>
+            <div class="form-group">{{ form.doc_number.label_tag }} {{ form.doc_number }}</div>
+            <div class="form-group">{{ form.phone.label_tag }} {{ form.phone }}</div>
+            <div class="form-group">{{ form.cep.label_tag }} {{ form.cep }}</div>
+            <div class="form-group">{{ form.address.label_tag }} {{ form.address }}</div>
+            <div class="form-group">{{ form.number.label_tag }} {{ form.number }}</div>
+            <div class="form-group">{{ form.city.label_tag }} {{ form.city }}</div>
+            <div class="form-group">{{ form.state.label_tag }} {{ form.state }}</div>
         </div>
         
         <div class="form-actions">
@@ -71,13 +42,13 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const cepInput = document.getElementById('{{ form.cep.id_for_label }}');
-    const addressInput = document.getElementById('{{ form.address.id_for_label }}');
-    const cityInput = document.getElementById('{{ form.city.id_for_label }}');
-    const stateInput = document.getElementById('{{ form.state.id_for_label }}');
-    const numberInput = document.getElementById('{{ form.number.id_for_label }}');
+    // IDs padrão gerados pelo Django para os campos do formulário
+    const cepInput = document.getElementById('id_cep');
+    const addressInput = document.getElementById('id_address');
+    const cityInput = document.getElementById('id_city');
+    const stateInput = document.getElementById('id_state');
+    const numberInput = document.getElementById('id_number');
 
-    // Adiciona uma verificação para garantir que o elemento CEP existe
     if (cepInput) {
         cepInput.addEventListener('blur', function() {
             const cep = this.value.replace(/\D/g, ''); // Remove caracteres não numéricos
@@ -92,8 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             stateInput.value = data.uf;
                             numberInput.focus(); // Move o cursor para o campo de número
                         } else {
-                            // Usamos um método mais discreto que alert()
-                            cepInput.style.borderColor = '#ef4444'; 
+                            cepInput.style.borderColor = '#ef4444'; // Destaca o campo de CEP se for inválido
                         }
                     })
                     .catch(error => console.error('Erro ao buscar CEP:', error));

@@ -1,7 +1,10 @@
+# Ficheiro: users/forms.py
+
 from django import forms
 from django.contrib.auth.models import User, Group
 from localflavor.br.forms import BRCPFField
 from .models import Profile
+from core.forms import RequiredFieldsMixin  # <-- 1. Importamos nossa ferramenta
 
 class FormWithFormControl(forms.ModelForm):
     """Uma classe base que aplica a classe 'form-control' a todos os campos."""
@@ -9,12 +12,12 @@ class FormWithFormControl(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             widget = field.widget
-            # Adiciona a classe, mantendo as que já existem
             current_class = widget.attrs.get('class', '')
             if 'form-control' not in current_class:
                 widget.attrs['class'] = f'{current_class} form-control'.strip()
 
-class UserCreationForm(FormWithFormControl):
+# 2. Adicionamos o Mixin a cada classe de formulário
+class UserCreationForm(RequiredFieldsMixin, FormWithFormControl):
     group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True, label="Cargo")
     password = forms.CharField(widget=forms.PasswordInput, label="Senha")
     full_name = forms.CharField(label="Nome Completo", max_length=150, required=True)
@@ -36,7 +39,7 @@ class UserCreationForm(FormWithFormControl):
             user.groups.set([self.cleaned_data['group']])
         return user
 
-class UserChangeForm(FormWithFormControl):
+class UserChangeForm(RequiredFieldsMixin, FormWithFormControl):
     group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True, label="Cargo")
     
     class Meta:
@@ -54,7 +57,7 @@ class UserChangeForm(FormWithFormControl):
             user.groups.set([self.cleaned_data['group']])
         return user
 
-class ProfileForm(FormWithFormControl):
+class ProfileForm(RequiredFieldsMixin, FormWithFormControl):
     cpf = BRCPFField(label="CPF", required=False)
     
     class Meta:

@@ -1,0 +1,45 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    /* Reutilizando os mesmos estilos da importação de produtos para manter a consistência */
+    .import-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 800px; margin: auto; }
+    .import-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; text-align: center; color: var(--accent-blue); }
+    .instructions { color: var(--secondary-text); margin-bottom: 32px; font-size: 0.95rem; line-height: 1.6; background-color: #2d3748; padding: 15px; border-radius: 8px; }
+    .instructions strong { color: var(--primary-text); }
+    .instructions code { background-color: #444; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+    .file-upload-wrapper { border: 2px dashed #444; padding: 30px; border-radius: 8px; cursor: pointer; transition: border-color 0.2s; text-align: center; }
+    .file-upload-wrapper:hover { border-color: var(--accent-blue); }
+    .form-actions { margin-top: 32px; display: flex; justify-content: center; gap: 16px; }
+    .btn-action { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-submit { background-color: var(--accent-blue); color: white; }
+    .btn-cancel { background-color: #444; color: var(--primary-text); }
+</style>
+
+<div class="import-container">
+    <h2 class="import-title">Importar Clientes de Planilha</h2>
+
+    <div class="instructions">
+        <p>Envie um ficheiro <strong>.xlsx</strong> para importar ou atualizar clientes em massa. A primeira linha da planilha deve conter os seguintes cabeçalhos (em minúsculas e sem acentos):</p>
+        <p><strong>Obrigatórios:</strong> <code>codigo</code>, <code>nome</code>, <code>telefone</code>, <code>cep</code>, <code>logradouro</code>, <code>numero</code>, <code>cidade</code>, <code>uf</code></p>
+        <p><strong>Opcionais:</strong> <code>razao_social</code>, <code>cpf_cnpj</code>, <code>email</code></p>
+        <p style="margin-top: 10px; font-size: 0.9rem;"><em>* A coluna <code>codigo</code> deve ser única. Se um código já existir no sistema, os dados daquele cliente serão atualizados com as informações da planilha.</em></p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="file-upload-wrapper" onclick="document.getElementById('excel_file').click();">
+            <input type="file" name="excel_file" id="excel_file" required accept=".xlsx" style="display: none;" onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : 'Nenhum ficheiro escolhido'">
+            <label for="excel_file" style="cursor: pointer; font-size: 1.1rem;">
+                <i class="fas fa-file-excel"></i> Clique para escolher o ficheiro
+            </label>
+            <p id="file-name" style="margin-top: 10px; color: var(--accent-blue);"></p>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-action btn-submit">Enviar e Importar</button>
+            <a href="{% url 'customers:customer_list' %}" class="btn-action btn-cancel">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
