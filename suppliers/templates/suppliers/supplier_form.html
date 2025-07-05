@@ -2,7 +2,6 @@
 
 {% block content %}
 <style>
-    /* Seus estilos... */
     .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 800px; margin: auto; }
     .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -14,6 +13,11 @@
     .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
+
+    @media (max-width: 768px) {
+        .form-grid { grid-template-columns: 1fr; }
+        .form-container { padding: 24px; }
+    }
 </style>
 
 <div class="form-container">
@@ -32,7 +36,6 @@
             <div class="form-group">{{ form.city.label_tag }} {{ form.city }}</div>
             <div class="form-group">{{ form.state.label_tag }} {{ form.state }}</div>
         </div>
-        
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Salvar</button>
             <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-secondary">Cancelar</a>
@@ -42,7 +45,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // IDs padrão gerados pelo Django para os campos do formulário
     const cepInput = document.getElementById('id_cep');
     const addressInput = document.getElementById('id_address');
     const cityInput = document.getElementById('id_city');
@@ -52,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (cepInput) {
         cepInput.addEventListener('blur', function() {
             const cep = this.value.replace(/\D/g, ''); // Remove caracteres não numéricos
-
             if (cep.length === 8) {
                 fetch(`https://viacep.com.br/ws/${cep}/json/`)
                     .then(response => response.json())
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             stateInput.value = data.uf;
                             numberInput.focus(); // Move o cursor para o campo de número
                         } else {
-                            cepInput.style.borderColor = '#ef4444'; // Destaca o campo de CEP se for inválido
+                            cepInput.style.borderColor = '#ef4444'; 
                         }
                     })
                     .catch(error => console.error('Erro ao buscar CEP:', error));

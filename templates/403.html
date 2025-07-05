@@ -1,0 +1,25 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block page_title %}Acesso Negado{% endblock %}
+
+{% block content %}
+<style>
+    .error-container { text-align: center; padding: 60px 20px; }
+    .error-icon { font-size: 5rem; color: var(--accent-red); margin-bottom: 24px; }
+    .error-title { font-size: 2rem; font-weight: 600; margin-bottom: 16px; }
+    .error-message { font-size: 1.1rem; color: var(--secondary-text); max-width: 500px; margin: 0 auto 32px auto; }
+    .btn-back { background-color: var(--accent-blue); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+</style>
+
+<div class="error-container">
+    <div class="error-icon"><i class="fas fa-hand-paper"></i></div>
+    <h1 class="error-title">Acesso Negado (403)</h1>
+    <p class="error-message">
+        Você não tem permissão para visualizar esta página. Por favor, entre em contato com o administrador do sistema se você acredita que isso é um erro.
+    </p>
+    <a href="/dashboard/" class="btn-back">
+        <i class="fas fa-arrow-left"></i>
+        Voltar para o Dashboard
+    </a>
+</div>
+{% endblock %}

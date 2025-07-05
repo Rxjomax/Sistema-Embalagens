@@ -3,7 +3,8 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin # 1. Importamos o UserPassesTestMixin
+from django.contrib.auth.decorators import permission_required # Para a view de importação
 from django.contrib import messages
 import pandas as pd
 from django.db.models import Q
@@ -12,32 +13,27 @@ from .models import Product
 from categories.models import Category
 from .forms import ProductForm
 
-class ProductListView(LoginRequiredMixin, ListView):
+
+# ================================================================
+# ========= CLASSE ATUALIZADA COM VERIFICAÇÃO DE PERMISSÃO =========
+# ================================================================
+class ProductListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Product
     template_name = 'products/product_list.html'
     context_object_name = 'products'
     paginate_by = 10
 
-    def get_queryset(self):
-        print("--- Iniciando busca de produtos ---") # DEBUG
-        queryset = super().get_queryset()
-        print(f"Passo 1: Encontrados {queryset.count()} produtos no total.") # DEBUG
-        
-        # Usamos .strip() para remover espaços em branco no início e no fim
-        query = self.request.GET.get('q', '').strip()
-        print(f"Passo 2: Termo de busca recebido: '{query}'") # DEBUG
+    def test_func(self):
+        # O teste: o usuário pode ver a página se for um superusuário OU tiver a permissão 'view_product'
+        return self.request.user.is_superuser or self.request.user.has_perm('products.view_product')
 
-        # A verificação 'if query:' agora é segura, pois uma string vazia após .strip() se torna False
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '').strip()
         if query:
-            print(f"Passo 3: Filtrando por '{query}'...") # DEBUG
             queryset = queryset.filter(
                 Q(name__icontains=query) | Q(code__icontains=query)
             )
-            print(f"Passo 4: Encontrados {queryset.count()} produtos após o filtro.") # DEBUG
-        else:
-            print("Passo 3: Nenhum termo de busca válido, mostrando todos os produtos.") # DEBUG
-        
-        print("--- Finalizando busca ---") # DEBUG
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -45,25 +41,37 @@ class ProductListView(LoginRequiredMixin, ListView):
         context['search_query'] = self.request.GET.get('q', '')
         return context
 
-# ... O resto do seu arquivo (CreateView, UpdateView, etc.) continua igual ...
-class ProductCreateView(LoginRequiredMixin, CreateView):
+
+class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Product
+    form_class = ProductForm
+    template_name = 'products/product_form.html'
+    success_url = reverse_lazy('products:product_list')
+    
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.has_perm('products.add_product')
+
+class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
     success_url = reverse_lazy('products:product_list')
 
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
-    model = Product
-    form_class = ProductForm
-    template_name = 'products/product_form.html'
-    success_url = reverse_lazy('products:product_list')
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.has_perm('products.change_product')
 
-class ProductDeleteView(LoginRequiredMixin, DeleteView):
+class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Product
     template_name = 'products/product_confirm_delete.html'
     success_url = reverse_lazy('products:product_list')
 
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.has_perm('products.delete_product')
+
+# Para a view de importação, que é baseada em função, usamos um "decorador"
+@permission_required('products.add_product', raise_exception=True)
 def import_products_view(request):
+    # ... (o resto do seu código de importação continua igual)
     if request.method == 'POST':
         excel_file = request.FILES.get('excel_file')
         if not excel_file or not excel_file.name.endswith('.xlsx'):

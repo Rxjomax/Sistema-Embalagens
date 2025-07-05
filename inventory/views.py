@@ -2,31 +2,28 @@
 
 from django.views.generic import ListView
 from django.shortcuts import render, redirect
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
-from django.db.models import Q # 1. Importamos o 'Q' para a busca
+from django.db.models import Q
 
 from products.models import Product
 from .forms import StockMovementForm
 from .models import StockMovement
 
-class InventoryListView(LoginRequiredMixin, ListView):
+class InventoryListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Product
     template_name = 'inventory/inventory_list.html'
     context_object_name = 'products'
     paginate_by = 20
 
-    # ========================================================
-    # ========= LÓGICA DE BUSCA ADICIONADA ABAIXO =========
-    # ========================================================
-    def get_queryset(self):
-        # Começa com todos os produtos
-        queryset = super().get_queryset().order_by('name')
-        # Pega o termo de busca da URL
-        query = self.request.GET.get('q', '').strip()
+    def test_func(self):
+        # Permite o acesso se o usuário for superuser ou tiver a permissão para ver movimentos de estoque
+        return self.request.user.is_superuser or self.request.user.has_perm('inventory.view_stockmovement')
 
-        # Se houver um termo de busca, filtra o queryset
+    def get_queryset(self):
+        queryset = super().get_queryset().order_by('name')
+        query = self.request.GET.get('q', '').strip()
         if query:
             queryset = queryset.filter(
                 Q(name__icontains=query) | Q(code__icontains=query)
@@ -34,13 +31,12 @@ class InventoryListView(LoginRequiredMixin, ListView):
         return queryset
 
     def get_context_data(self, **kwargs):
-        # Envia o termo de busca de volta para o template
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('q', '')
         return context
 
-
 @login_required
+@permission_required('inventory.add_stockmovement', raise_exception=True)
 def create_stock_movement(request, movement_type):
     if request.method == 'POST':
         form = StockMovementForm(request.POST)

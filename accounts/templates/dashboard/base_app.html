@@ -26,11 +26,10 @@
             transition: width 0.3s ease, padding 0.3s ease;
             position: relative; z-index: 1001;
         }
-        /* --- 1. CORREÇÃO DE ALINHAMENTO DO HEADER DA SIDEBAR --- */
         .sidebar-header { 
             display: flex; 
             align-items: center; 
-            justify-content: space-between; /* Garante que o logo fique à esquerda e o botão à direita */
+            justify-content: space-between;
             padding-bottom: 24px;
             margin-bottom: 16px;
         }
@@ -40,9 +39,11 @@
             gap: 12px;
             text-decoration: none;
         }
-        .logo-container img { height: 60px; width: auto; }
+        .logo-container img {
+            height: 40px; /* Você pode ajustar este valor */
+            width: auto;
+        }
         .logo-text { font-size: 1.2rem; font-weight: 700; color: var(--primary-text); white-space: nowrap; }
-
         .hamburger-menu { color: var(--primary-text); font-size: 1.2rem; cursor: pointer; padding: 5px; }
         .sidebar nav { flex-grow: 1; overflow-y: auto; margin-bottom: 24px; }
         .sidebar nav ul { list-style: none; padding: 0; margin: 0; }
@@ -75,7 +76,7 @@
         .alert-success { background-color: var(--accent-green); }
         .alert-error { background-color: var(--accent-red); }
 
-        body.sidebar-collapsed .sidebar { width: var(--sidebar-width-collapsed); padding: 24px 16px; }
+        body.sidebar-collapsed .sidebar { width: var(--sidebar-width-collapsed); }
         body.sidebar-collapsed .sidebar-header { justify-content: center; }
         body.sidebar-collapsed .logo-container { gap: 0; }
         body.sidebar-collapsed .logo-text,
@@ -102,12 +103,13 @@
             <div class="sidebar-header">
                 <a href="/dashboard/" class="logo-container">
                     <img src="{% static 'img/franciscoLogo.png' %}" alt="Logotipo Francisco Embalagens">
+                    <h2 class="logo-text">Francisco</h2>
                 </a>
                 <a class="hamburger-menu" id="sidebar-toggle-desktop"><i class="fas fa-bars"></i></a>
             </div>
             <nav>
                 <ul>
-                    <li><a href="/dashboard/" class="{% if request.resolver_match.view_name == 'dashboard_view' %}active{% endif %}"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
+                    <li><a href="/dashboard/" class="{% if request.resolver_match.app_name == 'dashboard' or request.resolver_match.view_name == 'dashboard_view' %}active{% endif %}"><i class="fas fa-chart-pie"></i> <span>Dashboard</span></a></li>
                     <li><a href="{% url 'products:product_list' %}" class="{% if request.resolver_match.app_name == 'products' %}active{% endif %}"><i class="fas fa-box-open"></i> <span>Produtos</span></a></li>
                     <li><a href="{% url 'categories:category_list' %}" class="{% if request.resolver_match.app_name == 'categories' %}active{% endif %}"><i class="fas fa-tags"></i> <span>Categorias</span></a></li>
                     <li><a href="{% url 'customers:customer_list' %}" class="{% if request.resolver_match.app_name == 'customers' %}active{% endif %}"><i class="fas fa-user-friends"></i> <span>Clientes</span></a></li>
@@ -152,10 +154,16 @@
                 </div>
             </header>
             <main>
-                <div class="messages-container">
-                    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
-                </div>
                 <div class="main-content-inner">
+                    {% if messages %}
+                    <div class="messages-container" style="padding-bottom: 16px;">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                     {% block content %}{% endblock %}
                 </div>
             </main>
@@ -171,7 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveState = (state) => { document.cookie = `sidebarState=${state}; max-age=31536000; path=/`; };
     const toggleDesktop = () => { body.classList.toggle('sidebar-collapsed'); saveState(body.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded'); };
     const toggleMobile = () => { body.classList.toggle('sidebar-mobile-open'); };
-    const checkScreenSize = () => { const isMobile = window.innerWidth <= 768; if (sidebarToggleDesktop) sidebarToggleDesktop.style.display = isMobile ? 'none' : 'block'; if (sidebarToggleMobile) sidebarToggleMobile.style.display = isMobile ? 'block' : 'none'; if (!isMobile) body.classList.remove('sidebar-mobile-open'); };
+    const checkScreenSize = () => {
+        const isMobile = window.innerWidth <= 768;
+        if(sidebarToggleDesktop) sidebarToggleDesktop.style.display = isMobile ? 'none' : 'block';
+        if(sidebarToggleMobile) sidebarToggleMobile.style.display = isMobile ? 'block' : 'none';
+        if (!isMobile) body.classList.remove('sidebar-mobile-open');
+    };
     if (sidebarToggleDesktop) sidebarToggleDesktop.addEventListener('click', toggleDesktop);
     if (sidebarToggleMobile) sidebarToggleMobile.addEventListener('click', toggleMobile);
     if (overlay) overlay.addEventListener('click', toggleMobile);

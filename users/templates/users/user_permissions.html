@@ -1,0 +1,45 @@
+{% extends "dashboard/base_app.html" %}
+
+{% block content %}
+<style>
+    .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 900px; margin: auto; }
+    .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
+    .permission-group { margin-bottom: 20px; }
+    .permission-group h3 { font-size: 1.1rem; color: var(--accent-green); border-bottom: 1px solid #444; padding-bottom: 10px; margin-bottom: 10px; }
+    .permission-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .form-actions { margin-top: 32px; display: flex; justify-content: flex-end; gap: 16px; }
+    .btn-primary { background-color: var(--accent-green); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
+    .btn-secondary { background-color: #444; color: var(--primary-text); padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; }
+</style>
+
+<div class="form-container">
+    <h2 class="form-title">Editando Permissões para: {{ target_user.username }}</h2>
+    <p style="color: var(--secondary-text); margin-top: -15px; margin-bottom: 30px;">
+        Selecione as permissões individuais que este usuário terá, além das permissões já concedidas pelo seu cargo (grupo).
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        {% regroup all_permissions by content_type.app_label as permissions_by_app %}
+        
+        {% for app in permissions_by_app %}
+            <div class="permission-group">
+                <h3>{{ app.grouper|capfirst }}</h3>
+                {% for perm in app.list %}
+                    <div class="permission-item">
+                        <input type="checkbox" name="permissions" value="{{ perm.pk }}" id="perm_{{ perm.pk }}"
+                               {% if perm.pk in user_permissions_pks %}checked{% endif %}>
+                        <label for="perm_{{ perm.pk }}">{{ perm.name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Salvar Permissões</button>
+            <a href="{% url 'users:user_list' %}" class="btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

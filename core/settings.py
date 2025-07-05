@@ -2,24 +2,17 @@
 
 from pathlib import Path
 import os
-import dj_database_url  # <- 1. Importações para deploy
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# --- 2. Configurações Dinâmicas de Segurança ---
-# Lê a SECRET_KEY do ambiente do servidor. Usa uma chave local insegura apenas se não encontrar.
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-sua-chave-local-insegura')
+# Quick-start development settings - unsuitable for production
+SECRET_KEY = 'django-insecure-sua-chave-local-e-insegura-para-testes'
 
-# Desativa o modo DEBUG automaticamente quando estiver no Render
-DEBUG = 'RENDER' not in os.environ
+# DEBUG ativado para desenvolvimento local
+DEBUG = True
 
-# --- 3. Configuração de Hosts Permitidos ---
-ALLOWED_HOSTS = []
-# Pega o nome do host do Render automaticamente, se existir
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 INSTALLED_APPS = [
@@ -28,24 +21,32 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic',  # <- 4. WhiteNoise para arquivos estáticos
     'django.contrib.staticfiles',
     
-    # Nossas apps
-    'accounts', 'dashboard', 'products', 'users', 'categories',
-    'suppliers', 'customers', 'inventory', 'sales', 'finance', 'production','logs',
+    # Suas apps
+    'accounts',
+    'dashboard',
+    'products',
+    'users',
+    'categories',
+    'suppliers',
+    'customers',
+    'inventory',
+    'sales',
+    'finance',
+    'production',
+    'logs',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # <- 5. Middleware do WhiteNoise
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'logs.middleware.RequestMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'logs.middleware.RequestMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -53,7 +54,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'], # Adicionado para a página de erro 403
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,13 +70,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# --- 6. Configuração de Banco de Dados Dinâmica ---
-# Usa a URL do banco de dados do Render se disponível, senão usa o SQLite local.
+# Database - Configuração padrão para SQLite
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # Password validation
@@ -92,33 +92,24 @@ TIME_ZONE = 'America/Recife'
 USE_I18N = True
 USE_TZ = True
 
-# --- 7. Configuração de Arquivos Estáticos para Produção ---
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
-# Esta pasta será usada pelo comando 'collectstatic' para juntar todos os arquivos estáticos
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-# Habilita o WhiteNoise para servir os arquivos de forma eficiente
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# --- Nossas Configurações Customizadas ---
-AUTHENTICATION_BACKENDS = [
-    'accounts.backends.EmailBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = 'accounts:login'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- 8. Configurações de Segurança Adicionais para Produção ---
-if 'RENDER' in os.environ:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+# --- Suas Configurações Customizadas ---
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# Configuração para ficheiros de upload
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

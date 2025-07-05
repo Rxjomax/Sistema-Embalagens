@@ -6,6 +6,9 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import permission_denied_view
+
+handler403 = permission_denied_view 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +32,5 @@ urlpatterns = [
     # path('vendas/', include('sales.urls', namespace='sales')), 
 ]
 
-# Linha para servir ficheiros de média em desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
