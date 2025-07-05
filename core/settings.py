@@ -2,17 +2,18 @@
 
 from pathlib import Path
 import os
+import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-sua-chave-local-e-insegura-para-testes'
+# Chave secreta dinâmica e DEBUG dinâmico
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-sua-chave-local-insegura-para-testes')
+DEBUG = 'RENDER' not in os.environ
 
-# DEBUG ativado para desenvolvimento local
-DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = []
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 INSTALLED_APPS = [
@@ -21,25 +22,17 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic', # Adicionado para o deploy
     'django.contrib.staticfiles',
     
     # Suas apps
-    'accounts',
-    'dashboard',
-    'products',
-    'users',
-    'categories',
-    'suppliers',
-    'customers',
-    'inventory',
-    'sales',
-    'finance',
-    'production',
-    'logs',
+    'accounts', 'dashboard', 'products', 'users', 'categories',
+    'suppliers', 'customers', 'inventory', 'sales', 'finance', 'production', 'logs',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Adicionado para o deploy
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -54,7 +47,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], # Adicionado para a página de erro 403
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,12 +63,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database - Configuração padrão para SQLite
+# Database - Configuração dinâmica
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600
+    )
 }
 
 # Password validation
@@ -92,13 +85,18 @@ TIME_ZONE = 'America/Recife'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# --- CONFIGURAÇÃO DE ARQUIVOS ESTÁTICOS CORRIGIDA ---
 STATIC_URL = 'static/'
+# Pasta onde seus arquivos estáticos locais estão (ex: /static/img/logo.png)
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    os.path.join(BASE_DIR, "static"),
 ]
+# Pasta para onde o 'collectstatic' vai copiar todos os arquivos para produção
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Storage para o WhiteNoise servir os arquivos de forma eficiente
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Default primary key field type
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- Suas Configurações Customizadas ---
@@ -106,10 +104,13 @@ AUTHENTICATION_BACKENDS = [
     'accounts.backends.EmailOrUsernameBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = 'accounts:login'
-
-# Configuração para ficheiros de upload
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Configurações de Segurança Adicionais para Produção
+if 'RENDER' in os.environ:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
