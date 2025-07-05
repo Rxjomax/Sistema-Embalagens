@@ -2,7 +2,6 @@
 
 {% block content %}
 <style>
-    /* ... Seus estilos existentes ... */
     .table-container { background-color: var(--card-bg); border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); }
     .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 20px; }
     .table-title { margin: 0; font-size: 1.2rem; }
@@ -11,6 +10,7 @@
     .btn-add { background-color: var(--accent-green); }
     .btn-import { background-color: #3b82f6; }
 
+    /* --- ESTILOS PARA A BARRA DE BUSCA --- */
     .search-form { display: flex; align-items: center; gap: 10px; }
     .search-input {
         padding: 10px 15px;
@@ -29,13 +29,27 @@
         border-radius: 8px;
         cursor: pointer;
     }
+    
+    /* --- ESTILOS DA TABELA --- */
     .styled-table { width: 100%; border-collapse: collapse; }
     .styled-table thead tr { background-color: #333; }
-    .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; }
+    .styled-table th, .styled-table td { 
+        padding: 12px 15px; 
+        text-align: left; 
+        white-space: nowrap; /* Impede que o texto quebre a linha */
+    }
     .styled-table tbody tr { border-bottom: 1px solid var(--border-color); }
     .actions a { color: var(--secondary-text); text-decoration: none; transition: color 0.2s; }
     .actions a:hover { color: var(--accent-green); }
     .actions a.delete:hover { color: #ef4444; }
+
+    /* ============================================= */
+    /* ========= CORREÇÃO RESPONSIVA ABAIXO ======== */
+    /* ============================================= */
+    .table-wrapper {
+        overflow-x: auto; /* Adiciona a rolagem horizontal APENAS se necessário */
+        width: 100%;
+    }
 </style>
 
 <div class="table-container">
@@ -57,34 +71,36 @@
         </div>
     </div>
 
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Código</th>
-                <th>Categoria</th>
-                <th>Valor Unitário</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in products %}
-            <tr>
-                <td>{{ product.name }}</td>
-                <td>{{ product.code }}</td>
-                <td>{{ product.category.name|default:"-" }}</td>
-                <td>R$ {{ product.unit_price|floatformat:2 }}</td>
-                <td class="actions">
-                    <a href="{% url 'products:product_update' product.pk %}" title="Editar"><i class="fas fa-edit"></i></a>
-                    <a href="{% url 'products:product_delete' product.pk %}" title="Excluir" class="delete" style="margin-left: 15px;"><i class="fas fa-trash"></i></a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" style="text-align: center; padding: 20px;">Nenhum produto cadastrado ainda.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-wrapper">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Código</th>
+                    <th>Categoria</th>
+                    <th>Valor Unitário</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.code }}</td>
+                    <td>{{ product.category.name|default:"-" }}</td>
+                    <td>R$ {{ product.unit_price|floatformat:2 }}</td>
+                    <td class="actions">
+                        <a href="{% url 'products:product_update' product.pk %}" title="Editar"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'products:product_delete' product.pk %}" title="Excluir" class="delete" style="margin-left: 15px;"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px;">Nenhum produto cadastrado ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
