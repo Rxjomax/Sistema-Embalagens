@@ -15,4 +15,5 @@ class Category(models.Model):
     # Esta propriedade vai contar quantos produtos usam esta categoria
     @property
     def product_count(self):
+        # Acessa a contagem através do related_name 'products'
         return self.products.count()

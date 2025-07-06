@@ -1,3 +1,5 @@
+# Ficheiro: customers/views.py
+
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -5,6 +7,8 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import pandas as pd
+from django.db.models import Q # 1. Importamos o 'Q'
+
 from .models import Customer
 from .forms import CustomerForm
 
@@ -12,8 +16,31 @@ class CustomerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Customer
     template_name = 'customers/customer_list.html'
     context_object_name = 'customers'
+    
     def test_func(self):
         return self.request.user.has_perm('customers.view_customer')
+
+    # ========================================================
+    # ========= LÓGICA DE BUSCA ADICIONADA ABAIXO =========
+    # ========================================================
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q', '').strip()
+
+        if query:
+            # Filtra por nome, telefone ou CPF/CNPJ
+            queryset = queryset.filter(
+                Q(name__icontains=query) |
+                Q(phone__icontains=query) |
+                Q(doc_number__icontains=query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        return context
+
 
 class CustomerCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Customer

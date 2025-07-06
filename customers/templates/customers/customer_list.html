@@ -9,21 +9,30 @@
     .btn-action { color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
     .btn-primary { background-color: var(--accent-green); }
     .btn-secondary { background-color: var(--accent-blue); }
+
+    /* Estilos da Barra de Busca */
+    .search-form { display: flex; align-items: center; gap: 10px; }
+    .search-input { padding: 10px 15px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; width: 250px; }
+    .search-btn { background-color: var(--accent-green); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
+
+    /* Estilos da Tabela Responsiva */
+    .table-wrapper { overflow-x: auto; }
     .styled-table { width: 100%; border-collapse: collapse; }
     .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
     .styled-table tbody tr:last-of-type { border-bottom: none; }
     .styled-table tbody tr:hover { background-color: #3a3a3a; }
     .actions a { color: var(--secondary-text); text-decoration: none; margin-right: 15px; }
-    
-    /* --- CORREÇÃO RESPONSIVA --- */
-    .table-wrapper {
-        overflow-x: auto;
-    }
 </style>
 
 <div class="table-container">
     <div class="table-header">
         <h2 class="table-title">Clientes Cadastrados</h2>
+        
+        <form method="get" action="{% url 'customers:customer_list' %}" class="search-form">
+            <input type="text" name="q" class="search-input" placeholder="Buscar por nome, telefone..." value="{{ search_query }}">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+
         <div class="header-actions">
             <a href="{% url 'customers:customer_import' %}" class="btn-action btn-secondary"><i class="fas fa-upload"></i> Importar</a>
             <a href="{% url 'customers:customer_add' %}" class="btn-action btn-primary"><i class="fas fa-plus"></i> Adicionar Cliente</a>
@@ -55,7 +64,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 20px;">Nenhum cliente cadastrado.</td>
+                    <td colspan="5" style="text-align: center; padding: 20px;">Nenhum cliente encontrado.</td>
                 </tr>
                 {% endfor %}
             </tbody>
