@@ -1,5 +1,7 @@
 {% extends "dashboard/base_app.html" %}
 
+{% block page_title %}Registrar Venda{% endblock %}
+
 {% block content %}
 <style>
     .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 950px; margin: auto; }
@@ -11,8 +13,8 @@
     .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
-    .btn-add-item { background-color: #4a90e2; color: white; margin-top: 10px; font-size: 0.9rem; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-remove-item { background-color: #d0021b; color: white; border-radius: 6px; padding: 5px 10px; font-size: 0.8rem; }
+    .btn-add-item { background-color: var(--accent-blue); color: white; margin-top: 10px; font-size: 0.9rem; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
+    .btn-remove-item { background-color: #ef4444; color: white; border-radius: 6px; padding: 5px 10px; font-size: 0.8rem; border: none; cursor: pointer; }
     .styled-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     .styled-table th, .styled-table td { padding: 10px; text-align: left; vertical-align: middle; }
     .styled-table td input, .styled-table td select { height: 46px; }
@@ -20,6 +22,11 @@
     .input-group { display: flex; align-items: center; }
     .input-group-text { padding: 12px; background-color: #444; border: 1px solid #444; border-right: none; border-radius: 8px 0 0 8px; }
     .input-group .form-control { border-radius: 0 8px 8px 0; }
+    .autocomplete-container { position: relative; }
+    .autocomplete-results { position: absolute; top: 100%; left: 0; right: 0; background-color: #444; border: 1px solid #555; border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; max-height: 200px; overflow-y: auto; }
+    .autocomplete-item { padding: 10px 15px; cursor: pointer; color: var(--primary-text); }
+    .autocomplete-item:hover { background-color: var(--accent-blue); }
+    .errorlist { color: #ef4444; list-style: none; padding: 0; margin-top: 5px; font-size: 0.9rem; }
 </style>
 
 <form method="post">
@@ -27,14 +34,18 @@
     <div class="form-container">
         <h2 class="form-title">Registrar Nova Venda</h2>
         
-        <div class="form-group">
-            <label for="{{ form.customer.id_for_label }}">Cliente</label>
-            {{ form.customer }}
+        <div class="form-group autocomplete-container">
+            <label for="customer-search-input">Cliente *</label>
+            {{ form.customer }} 
+            <input type="text" id="customer-search-input" class="form-control" placeholder="Digite para buscar um cliente..." autocomplete="off">
+            <div id="autocomplete-results-list" class="autocomplete-results" style="display: none;"></div>
+            {{ form.customer.errors }}
         </div>
 
         <h3 style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">Itens da Venda</h3>
         
         {{ item_formset.management_form }}
+        {% if item_formset.non_form_errors %}<div class="errorlist">{{ item_formset.non_form_errors }}</div>{% endif %}
         
         <table class="styled-table">
             <thead>
@@ -50,41 +61,33 @@
                 {% for item_form in item_formset %}
                 <tr class="item-form">
                     {{ item_form.id }}
-                    <td>{{ item_form.product }}</td>
-                    <td>{{ item_form.quantity }}</td>
+                    <td>{{ item_form.product }}{{ item_form.product.errors }}</td>
+                    <td>{{ item_form.quantity }}{{ item_form.quantity.errors }}</td>
                     <td>
                         <div class="input-group">
                             <span class="input-group-text">R$</span>
                             {{ item_form.unit_price }}
                         </div>
+                        {{ item_form.unit_price.errors }}
                     </td>
                     <td class="total-cell">R$ 0.00</td>
                     <td>
-                        {% if item_form.instance.pk %}
-                            {{ item_form.DELETE }} <label for="{{ item_form.DELETE.id_for_label }}" class="btn-remove-item">Remover</label>
-                        {% else %}
-                            <button type="button" class="btn-remove-item">Remover</button>
-                        {% endif %}
+                        {% if item_form.instance.pk %}{{ item_form.DELETE }} <label for="{{ item_form.DELETE.id_for_label }}" class="btn-remove-item">Remover</label>
+                        {% else %}<button type="button" class="btn-remove-item">Remover</button>{% endif %}
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <button type="button" id="add-item-btn" class="btn btn-add-item"><i class="fas fa-plus"></i> Adicionar Item</button>
+        <button type="button" id="add-item-btn" class="btn-add-item"><i class="fas fa-plus"></i> Adicionar Item</button>
         
         <template id="empty-form-template">
             <tr class="item-form">
-                {{ item_formset.empty_form.id }}
                 <td>{{ item_formset.empty_form.product }}</td>
                 <td>{{ item_formset.empty_form.quantity }}</td>
-                <td>
-                    <div class="input-group">
-                        <span class="input-group-text">R$</span>
-                        {{ item_formset.empty_form.unit_price }}
-                    </div>
-                </td>
+                <td><div class="input-group"><span class="input-group-text">R$</span>{{ item_formset.empty_form.unit_price }}</div></td>
                 <td class="total-cell">R$ 0.00</td>
-                <td><button type="button" class="btn btn-remove-item">Remover</button></td>
+                <td><button type="button" class="btn-remove-item">Remover</button></td>
             </tr>
         </template>
 
@@ -112,24 +115,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const productSelector = row.querySelector('.product-selector');
         const quantityInput = row.querySelector('.quantity-input');
         const priceInput = row.querySelector('.price-input');
-        
         if (!productSelector || !quantityInput || !priceInput) return;
-
         productSelector.addEventListener('change', () => {
-            const selectedProductId = productSelector.value;
-            const price = productPrices[selectedProductId] || '0.00';
+            const price = productPrices[productSelector.value] || '0.00';
             priceInput.value = parseFloat(price).toFixed(2);
             calculateRowTotal(row);
         });
-
         quantityInput.addEventListener('input', () => calculateRowTotal(row));
     }
 
     function calculateRowTotal(row) {
-        const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        const total = quantity * price;
-        row.querySelector('.total-cell').textContent = `R$ ${total.toFixed(2)}`;
+        const quantity = parseFloat(row.querySelector('.quantity-input')?.value) || 0;
+        const price = parseFloat(row.querySelector('.price-input')?.value) || 0;
+        const totalCell = row.querySelector('.total-cell');
+        if (totalCell) {
+            totalCell.textContent = `R$ ${(quantity * price).toFixed(2)}`;
+        }
         updateGrandTotal();
     }
 
@@ -143,20 +144,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     addItemBtn.addEventListener('click', function() {
         const totalForms = parseInt(totalFormsInput.value);
-        const newFormHtml = emptyFormTemplate.innerHTML.replace(/__prefix__/g, totalForms);
-        
-        const newRow = formsetBody.insertRow();
+        let newFormHtml = emptyFormTemplate.innerHTML.replace(/__prefix__/g, totalForms);
+        const newRow = document.createElement('tr');
         newRow.classList.add('item-form');
         newRow.innerHTML = newFormHtml;
-        
+        formsetBody.appendChild(newRow);
         totalFormsInput.value = totalForms + 1;
         updateEventListeners(newRow);
     });
 
     formsetBody.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('btn-remove-item')) {
-            const rowToRemove = e.target.closest('.item-form');
-            rowToRemove.remove();
+            e.target.closest('.item-form').remove();
             updateGrandTotal();
         }
     });
@@ -165,6 +164,39 @@ document.addEventListener('DOMContentLoaded', function() {
         updateEventListeners(row);
         calculateRowTotal(row);
     });
+
+    // SCRIPT PARA AUTOCOMPLETE DE CLIENTES
+    const searchInput = document.getElementById('customer-search-input');
+    const hiddenInput = document.getElementById('id_customer');
+    const resultsList = document.getElementById('autocomplete-results-list');
+    
+    searchInput.addEventListener('keyup', function() {
+        const query = this.value;
+        if (query.length < 2) { resultsList.style.display = 'none'; hiddenInput.value = ''; return; }
+        fetch(`{% url 'sales:customer_search' %}?term=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsList.innerHTML = '';
+                if (data.length > 0) {
+                    data.forEach(customer => {
+                        const item = document.createElement('div');
+                        item.classList.add('autocomplete-item');
+                        item.textContent = customer.text;
+                        item.dataset.customerId = customer.id;
+                        item.addEventListener('click', () => {
+                            searchInput.value = customer.text;
+                            hiddenInput.value = customer.id;
+                            resultsList.style.display = 'none';
+                        });
+                        resultsList.appendChild(item);
+                    });
+                    resultsList.style.display = 'block';
+                } else {
+                    resultsList.style.display = 'none';
+                }
+            });
+    });
+    document.addEventListener('click', e => { if (e.target.id !== 'customer-search-input') { resultsList.style.display = 'none'; } });
 });
 </script>
 {% endblock %}
