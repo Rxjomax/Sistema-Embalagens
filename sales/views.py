@@ -1,4 +1,4 @@
-# Ficheiro: sales/views.py (VERSÃO CORRIGIDA E FINAL)
+# Ficheiro: sales/views.py
 
 from django.db import transaction
 from django.urls import reverse_lazy
@@ -8,6 +8,7 @@ from django.contrib import messages
 import json
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.db.models import Q
 
 from .models import Sale
 from .forms import SaleForm, SaleItemFormSet
@@ -32,33 +33,25 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Passa todos os produtos e preços para o JavaScript
         products = Product.objects.all()
         product_prices = {str(p.id): str(p.unit_price) for p in products}
         context['product_prices_json'] = json.dumps(product_prices)
         
-        # Garante que o formset seja passado corretamente, mesmo em caso de erro
-        if 'item_formset' not in kwargs:
-            if self.request.POST:
-                context['item_formset'] = SaleItemFormSet(self.request.POST, prefix='items')
-            else:
-                context['item_formset'] = SaleItemFormSet(prefix='items')
+        if self.request.POST:
+            context['item_formset'] = SaleItemFormSet(self.request.POST, prefix='items')
         else:
-            context['item_formset'] = kwargs['item_formset']
-            
+            context['item_formset'] = SaleItemFormSet(prefix='items')
         return context
 
-    def post(self, request, *args, **kwargs):
-        # self.object não existe em CreateView antes do form_valid
-        form = self.get_form()
-        item_formset = SaleItemFormSet(request.POST, prefix='items')
+    def form_valid(self, form):
+        context = self.get_context_data()
+        item_formset = context['item_formset']
+        
+        if not item_formset.is_valid():
+            messages.error(self.request, "Por favor, corrija os erros nos itens da venda abaixo.")
+            return self.form_invalid(form)
 
-        if form.is_valid() and item_formset.is_valid():
-            return self.form_valid(form, item_formset)
-        else:
-            # Se houver erros, chama o form_invalid com ambos os formulários
-            return self.form_invalid(form, item_formset)
-
-    def form_valid(self, form, item_formset):
         with transaction.atomic():
             form.instance.seller = self.request.user
             self.object = form.save()
@@ -90,12 +83,27 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         
         return redirect(self.get_success_url())
 
-    def form_invalid(self, form, item_formset=None):
-        messages.error(self.request, "Por favor, corrija os erros abaixo.")
-        return self.render_to_response(self.get_context_data(form=form, item_formset=item_formset))
+    def form_invalid(self, form):
+        context = self.get_context_data(form=form)
+        return self.render_to_response(context)
 
 def customer_search_view(request):
     query = request.GET.get('term', '')
     customers = Customer.objects.filter(name__icontains=query)[:10]
     results = [{'id': c.id, 'text': c.name} for c in customers]
+    return JsonResponse(results, safe=False)
+
+def product_search_view(request):
+    query = request.GET.get('term', '')
+    products = Product.objects.filter(
+        Q(name__icontains=query) | Q(code__icontains=query)
+    )[:10]
+    
+    results = []
+    for p in products:
+        results.append({
+            'id': p.id,
+            'text': f"{p.name} ({p.code})",
+            'price': f"{p.unit_price:.2f}"
+        })
     return JsonResponse(results, safe=False)
