@@ -4,10 +4,9 @@ from django import forms
 from django.contrib.auth.models import User, Group
 from localflavor.br.forms import BRCPFField
 from .models import Profile
-from core.forms import RequiredFieldsMixin  # <-- 1. Importamos nossa ferramenta
+from core.forms import RequiredFieldsMixin
 
 class FormWithFormControl(forms.ModelForm):
-    """Uma classe base que aplica a classe 'form-control' a todos os campos."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
@@ -16,7 +15,6 @@ class FormWithFormControl(forms.ModelForm):
             if 'form-control' not in current_class:
                 widget.attrs['class'] = f'{current_class} form-control'.strip()
 
-# 2. Adicionamos o Mixin a cada classe de formulário
 class UserCreationForm(RequiredFieldsMixin, FormWithFormControl):
     group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True, label="Cargo")
     password = forms.CharField(widget=forms.PasswordInput, label="Senha")
@@ -24,10 +22,11 @@ class UserCreationForm(RequiredFieldsMixin, FormWithFormControl):
 
     class Meta:
         model = User
-        fields = ['full_name', 'first_name', 'last_name', 'username', 'email', 'password']
+        # --- ORDEM DOS CAMPOS ATUALIZADA ---
+        fields = ['full_name', 'username', 'email', 'password', 'group', 'first_name', 'last_name']
         widgets = {
-            'first_name': forms.TextInput(attrs={'readonly': 'readonly', 'placeholder': '(Automático)'}),
-            'last_name': forms.TextInput(attrs={'readonly': 'readonly', 'placeholder': '(Automático)'}),
+            'first_name': forms.HiddenInput(), # Escondido, preenchido por JS
+            'last_name': forms.HiddenInput(), # Escondido, preenchido por JS
             'username': forms.TextInput(attrs={'placeholder': '(Sugerido)'}),
         }
 
@@ -41,10 +40,10 @@ class UserCreationForm(RequiredFieldsMixin, FormWithFormControl):
 
 class UserChangeForm(RequiredFieldsMixin, FormWithFormControl):
     group = forms.ModelChoiceField(queryset=Group.objects.all(), required=True, label="Cargo")
-    
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email']
+        # --- ORDEM DOS CAMPOS ATUALIZADA ---
+        fields = ['first_name', 'last_name', 'username', 'email', 'group']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,7 +58,7 @@ class UserChangeForm(RequiredFieldsMixin, FormWithFormControl):
 
 class ProfileForm(RequiredFieldsMixin, FormWithFormControl):
     cpf = BRCPFField(label="CPF", required=False)
-    
     class Meta:
         model = Profile
-        fields = ['code', 'phone', 'cpf', 'photo']
+        # --- ORDEM DOS CAMPOS ATUALIZADA ---
+        fields = ['phone', 'cpf', 'code', 'photo']

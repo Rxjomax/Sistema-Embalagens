@@ -16,7 +16,6 @@ class Sale(models.Model):
     total_value = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor Total")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='EM_ABERTO', verbose_name="Status")
 
-    # NOVO CAMPO: Para controlar se a ordem já foi gerada
     production_order_created = models.BooleanField(default=False, editable=False)
 
     class Meta:
@@ -32,15 +31,27 @@ class SaleItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT, verbose_name="Produto")
     quantity = models.PositiveIntegerField(verbose_name="Quantidade")
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Preço Unitário")
-    total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total do Item")
+    
+    # É uma boa prática ter o total aqui, mas o default=0 é importante
+    total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total do Item", default=0)
 
     class Meta:
         verbose_name = "Item da Venda"
         verbose_name_plural = "Itens da Venda"
 
     def save(self, *args, **kwargs):
-        self.total = self.unit_price * self.quantity
+        # Garante que o total seja calculado antes de salvar
+        if self.unit_price and self.quantity:
+            self.total = self.unit_price * self.quantity
         super().save(*args, **kwargs)
 
+    # ========================================================
+    # ========= MÉTODO GET_TOTAL ADICIONADO ABAIXO =========
+    # ========================================================
+    def get_total(self):
+        if self.unit_price and self.quantity:
+            return self.unit_price * self.quantity
+        return 0
+
     def __str__(self):
-        return f"{self.product.name} (x{self.quantity})"
+        return f"{self.quantity} x {self.product.name}"

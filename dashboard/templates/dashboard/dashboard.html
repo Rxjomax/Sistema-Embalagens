@@ -2,11 +2,18 @@
 
 {% block content %}
 <style>
-    /* Seus estilos existentes... */
     .dashboard-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 24px;
+    }
+    .grid-col-span-2 {
+        grid-column: span 2;
+    }
+    @media (max-width: 1024px) {
+        .grid-col-span-2 {
+            grid-column: span 1;
+        }
     }
     .card {
         background-color: var(--card-bg);
@@ -16,121 +23,80 @@
         display: flex;
         flex-direction: column;
     }
-    .card-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-    .card-icon {
-        font-size: 1.2rem;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-    }
-    .card-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--primary-text);
-    }
-    .card-body {
-        flex-grow: 1;
-    }
-    .card-body p {
-        margin: 8px 0;
-        font-size: 0.9rem;
-        color: var(--secondary-text);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .card-body p span {
-        font-weight: 600;
-        font-size: 1.2rem;
-        color: var(--primary-text);
-    }
-    .alert-card {
-        border-left: 5px solid #f59e0b;
-    }
-    .alert-product-name {
-        font-weight: 500;
-        color: var(--primary-text);
-    }
-    .alert-stock-details {
-        font-size: 0.9rem;
-        text-align: right;
-    }
-    .alert-stock-details .current-stock {
-        color: #ef4444;
-        font-weight: bold;
-    }
+    .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .card-icon { font-size: 1.2rem; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; }
+    .card-title { font-size: 1rem; font-weight: 600; color: var(--primary-text); }
+    .card-body p { margin: 8px 0; font-size: 0.9rem; color: var(--secondary-text); display: flex; justify-content: space-between; align-items: center; }
+    .card-body p span { font-weight: 600; font-size: 1.2rem; color: var(--primary-text); }
+    .profit-positive { color: var(--accent-green) !important; }
+    .profit-negative { color: var(--accent-red) !important; }
+    .alert-card { border-left: 5px solid #f59e0b; }
+    .chart-container { position: relative; height: 320px; width: 100%; }
 </style>
 
 <div class="dashboard-grid">
-
-    {% if low_stock_products %}
-    <div class="card alert-card">
-        <div class="card-header">
-            <div class="card-icon" style="background-color: #f59e0b40; color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i></div>
-            <h3 class="card-title">Alerta de Estoque Baixo</h3>
-        </div>
-        <div class="card-body">
-            {% for product in low_stock_products %}
-                <p>
-                    <span class="alert-product-name">{{ product.name }}</span>
-                    <span class="alert-stock-details">
-                        <b class="current-stock">{{ product.stock_quantity }}</b> / {{ product.minimum_stock }}
-                    </span>
-                </p>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
     <div class="card">
-        <div class="card-header">
-            <div class="card-icon" style="background-color: #3b82f640; color: #60a5fa;"><i class="fas fa-exchange-alt"></i></div>
-            <h3 class="card-title">Entradas x Saídas (Mês Atual)</h3>
-        </div>
+        <div class="card-header"><div class="card-icon" style="background-color: #8b5cf640; color: #a78bfa;"><i class="fas fa-users"></i></div><h3 class="card-title">Clientes</h3></div>
         <div class="card-body">
-            <p>Entradas: <span>{{ monthly_entries }}</span></p>
-            <p>Saídas: <span>{{ monthly_exits }}</span></p>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header">
-            <div class="card-icon" style="background-color: #8b5cf640; color: #a78bfa;"><i class="fas fa-users"></i></div>
-            <h3 class="card-title">Clientes</h3>
-        </div>
-        <div class="card-body">
-            <p>Novos (últimos 30 dias): <span>{{ new_customers }}</span></p>
+            <p>Novos (30 dias): <span>{{ new_customers }}</span></p>
             <p>Total de Clientes Ativos: <span>{{ total_customers }}</span></p>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <div class="card-icon" style="background-color: #f59e0b40; color: #fcd34d;"><i class="fas fa-boxes-stacked"></i></div>
-            <h3 class="card-title">Estoque</h3>
-        </div>
+        <div class="card-header"><div class="card-icon" style="background-color: #10b98140; color: #34d399;"><i class="fas fa-dollar-sign"></i></div><h3 class="card-title">Financeiro (Mês Atual)</h3></div>
         <div class="card-body">
-            <p>Total de Itens em Estoque: <span>{{ stock_total_items }}</span></p>
+            <p>Receita (Vendas Pagas): <span style="color: var(--accent-green);">R$ {{ total_revenue|floatformat:2 }}</span></p>
+            <p>Despesas (Entradas de Estoque): <span style="color: var(--accent-red);">R$ {{ total_expenses|floatformat:2 }}</span></p>
+            <hr style="border-color: #444; margin: 10px 0;">
+            <p>Lucro do Mês: <span class="{% if profit >= 0 %}profit-positive{% else %}profit-negative{% endif %}">R$ {{ profit|floatformat:2 }}</span></p>
         </div>
     </div>
-
-    <div class="card">
-        <div class="card-header">
-            <div class="card-icon" style="background-color: #10b98140; color: #34d399;"><i class="fas fa-dollar-sign"></i></div>
-            <h3 class="card-title">Financeiro</h3>
+    
+    {% if low_stock_products %}
+    <div class="card alert-card">
+        <div class="card-header"><div class="card-icon" style="background-color: #f59e0b40; color: #f59e0b;"><i class="fas fa-exclamation-triangle"></i></div><h3 class="card-title">Alerta de Estoque Baixo</h3></div>
+        <div class="card-body" style="font-size: 0.9rem;">
+            <ul style="list-style:none; padding:0; margin:0;">
+                {% for product in low_stock_products %}
+                    <li style="display:flex; justify-content:space-between; padding: 8px 0; border-bottom: 1px solid #333;"><span>{{ product.name }}</span><span style="color:var(--accent-red);"><b>{{ product.stock_quantity }}</b></span></li>
+                {% endfor %}
+            </ul>
         </div>
-        <div class="card-body">
-            <p>Receita (Vendas Pagas): <span>R$ {{ total_revenue|floatformat:2 }}</span></p>
-            </div>
+    </div>
+    {% endif %}
+    
+    <div class="card grid-col-span-2">
+        <div class="card-header"><div class="card-icon" style="background-color: #3b82f640; color: #60a5fa;"><i class="fas fa-chart-line"></i></div><h3 class="card-title">Receita Mensal (Últimos 6 Meses)</h3></div>
+        <div class="card-body chart-container"><canvas id="revenueChart"></canvas></div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header"><div class="card-icon" style="background-color: #f59e0b40; color: #fcd34d;"><i class="fas fa-boxes-stacked"></i></div><h3 class="card-title">Top 5 Produtos em Estoque</h3></div>
+        <div class="card-body chart-container"><canvas id="stockChart"></canvas></div>
     </div>
 </div>
+
+{{ revenue_chart_labels|json_script:"revenue-labels" }}
+{{ revenue_chart_data|json_script:"revenue-data" }}
+{{ stock_chart_labels|json_script:"stock-labels" }}
+{{ stock_chart_data|json_script:"stock-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const revenueLabels = JSON.parse(document.getElementById('revenue-labels').textContent);
+        const revenueData = JSON.parse(document.getElementById('revenue-data').textContent);
+        const stockLabels = JSON.parse(document.getElementById('stock-labels').textContent);
+        const stockData = JSON.parse(document.getElementById('stock-data').textContent);
+
+        // --- GRÁFICO DE RECEITA (LINHA) ---
+        const ctxRevenue = document.getElementById('revenueChart');
+        if (ctxRevenue) { new Chart(ctxRevenue, { type: 'line', data: { labels: revenueLabels, datasets: [{ label: 'Faturamento (R$)', data: revenueData, backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 2, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } }); }
+
+        // --- GRÁFICO DE ESTOQUE (BARRAS HORIZONTAIS) ---
+        const ctxStock = document.getElementById('stockChart');
+        if (ctxStock && stockData.length > 0) { new Chart(ctxStock, { type: 'bar', data: { labels: stockLabels, datasets: [{ label: 'Qtd. em Estoque', data: stockData, backgroundColor: 'rgba(245, 158, 11, 0.7)' }] }, options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } } }); }
+    });
+</script>
 {% endblock %}

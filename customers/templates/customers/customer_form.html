@@ -4,7 +4,7 @@
 <style>
     .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 800px; margin: auto; }
     .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .form-group { margin-bottom: 20px; }
     .form-group.full-width { grid-column: 1 / -1; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
@@ -13,7 +13,6 @@
     .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
-
     @media (max-width: 768px) {
         .form-grid { grid-template-columns: 1fr; }
         .form-container { padding: 24px; }
@@ -26,22 +25,24 @@
         {% csrf_token %}
         <div class="form-grid">
             <div class="form-group full-width">{{ form.name.label_tag }} {{ form.name }}</div>
-            <div class="form-group full-width">{{ form.company_name.label_tag }} {{ form.company_name }}</div>
-            <div class="form-group">{{ form.doc_number.label_tag }} {{ form.doc_number }}</div>
-            <div class="form-group">{{ form.email.label_tag }} {{ form.email }}</div>
             <div class="form-group">{{ form.phone.label_tag }} {{ form.phone }}</div>
+            <div class="form-group">{{ form.email.label_tag }} {{ form.email }}</div>
+            <div class="form-group">{{ form.doc_number.label_tag }} {{ form.doc_number }}</div>
+            <div class="form-group">{{ form.company_name.label_tag }} {{ form.company_name }}</div>
             <div class="form-group">{{ form.cep.label_tag }} {{ form.cep }}</div>
-            <div class="form-group full-width">{{ form.address.label_tag }} {{ form.address }}</div>
+            <div class="form-group">{{ form.address.label_tag }} {{ form.address }}</div>
             <div class="form-group">{{ form.number.label_tag }} {{ form.number }}</div>
             <div class="form-group">{{ form.city.label_tag }} {{ form.city }}</div>
             <div class="form-group">{{ form.state.label_tag }} {{ form.state }}</div>
         </div>
+        
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Salvar</button>
             <a href="{% url 'customers:customer_list' %}" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const cepInput = document.getElementById('id_cep');
@@ -49,21 +50,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const cityInput = document.getElementById('id_city');
     const stateInput = document.getElementById('id_state');
     const numberInput = document.getElementById('id_number');
+
     if (cepInput) {
         cepInput.addEventListener('blur', function() {
             const cep = this.value.replace(/\D/g, '');
             if (cep.length === 8) {
                 fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.erro) {
-                        addressInput.value = data.logradouro;
-                        cityInput.value = data.localidade;
-                        stateInput.value = data.uf;
-                        numberInput.focus();
-                    }
-                })
-                .catch(error => console.error('Erro:', error));
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.erro) {
+                            addressInput.value = data.logradouro;
+                            cityInput.value = data.localidade;
+                            stateInput.value = data.uf;
+                            numberInput.focus();
+                        }
+                    })
+                    .catch(error => console.error('Erro:', error));
             }
         });
     }

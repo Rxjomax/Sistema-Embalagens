@@ -7,27 +7,33 @@
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
     .form-control { width: 100%; padding: 12px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
-    .form-actions { margin-top: 32px; display: flex; gap: 16px; }
+    .form-actions { margin-top: 32px; display: flex; justify-content: flex-end; gap: 16px; }
     .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; }
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
 </style>
 
 <div class="form-container">
-    <h2 class="form-title">Registrar {{ movement_type }} de Produto</h2>
+    <h2 class="form-title">Registrar Entrada de Produto</h2>
     <form method="post">
         {% csrf_token %}
         
         <div class="form-group">
-            <label for="{{ form.product.id_for_label }}">Produto</label>
+            {{ form.product.label_tag }}
             {{ form.product }}
         </div>
         <div class="form-group">
-            <label for="{{ form.quantity.id_for_label }}">Quantidade</label>
+            {{ form.quantity.label_tag }}
             {{ form.quantity }}
         </div>
+
         <div class="form-group">
-            <label for="{{ form.notes.id_for_label }}">Observações (Opcional)</label>
+            {{ form.total_cost.label_tag }}
+            {{ form.total_cost }}
+        </div>
+
+        <div class="form-group">
+            {{ form.notes.label_tag }}
             {{ form.notes }}
         </div>
 
@@ -37,17 +43,4 @@
         </div>
     </form>
 </div>
-
-<script>
-    // Script para adicionar a classe 'form-control' a todos os campos
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form');
-        form.querySelectorAll('input, select, textarea').forEach(function(el) {
-            // Garante que o input de ficheiro não recebe a classe, pois quebra o seu estilo
-            if (el.type !== 'file') {
-                el.classList.add('form-control');
-            }
-        });
-    });
-</script>
 {% endblock %}

@@ -7,15 +7,21 @@ from core.forms import RequiredFieldsMixin
 class CustomerForm(RequiredFieldsMixin, forms.ModelForm):
     class Meta:
         model = Customer
-        # 'code' foi removido desta lista
+        # --- ORDEM DOS CAMPOS ATUALIZADA ---
         fields = [
-            'name', 'company_name', 'doc_number', 'email',
-            'phone', 'cep', 'address', 'number', 'city', 'state'
+            'name', 'phone', 'email', 'doc_number', 'company_name',
+            'cep', 'address', 'number', 'city', 'state'
         ]
-        # Adiciona a classe CSS para estilização
         widgets = {
-            field_name: forms.TextInput(attrs={'class': 'form-control'})
-            for field_name in fields
+            # O loop foi substituído pela definição explícita para garantir a ordem
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'doc_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'company_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'cep': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite o CEP e aguarde'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'number': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'state': forms.TextInput(attrs={'class': 'form-control'}),
         }
-        widgets['email'] = forms.EmailInput(attrs={'class': 'form-control'})
-        widgets['cep'] = forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Digite o CEP e aguarde'})

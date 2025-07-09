@@ -7,14 +7,11 @@ from core.forms import RequiredFieldsMixin
 class SupplierForm(RequiredFieldsMixin, forms.ModelForm):
     class Meta:
         model = Supplier
+        # --- ORDEM DOS CAMPOS ATUALIZADA ---
         fields = [
-            'code', 'company_name', 'trade_name', 'doc_number', 'phone',
+            'trade_name', 'company_name', 'phone', 'doc_number', 'code',
             'cep', 'address', 'number', 'city', 'state'
         ]
-        
-        # ================================================================
-        # ========= WIDGETS ATUALIZADOS PARA TODOS OS CAMPOS =========
-        # ================================================================
         widgets = {
             'code': forms.TextInput(attrs={'class': 'form-control'}),
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),

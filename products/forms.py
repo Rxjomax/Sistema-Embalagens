@@ -1,12 +1,12 @@
 from django import forms
 from .models import Product
-from core.forms import RequiredFieldsMixin  # 1. Importamos nossa nova ferramenta
+from core.forms import RequiredFieldsMixin
 
-# 2. Adicionamos o "RequiredFieldsMixin" à classe do formulário
 class ProductForm(RequiredFieldsMixin, forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['code', 'name', 'category', 'unit_price', 'medida_x', 'medida_y', 'description']
+        # --- ORDEM DOS CAMPOS ATUALIZADA ---
+        fields = ['name', 'code', 'category', 'unit_price', 'medida_x', 'medida_y', 'description']
         widgets = {
             'code': forms.TextInput(attrs={'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),

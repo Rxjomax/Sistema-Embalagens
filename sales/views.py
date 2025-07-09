@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 import json
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.db.models import Q
 
 from .models import Sale
@@ -26,43 +26,53 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Sale
     form_class = SaleForm
     template_name = 'sales/sale_form.html'
-    success_url = reverse_lazy('sales:sale_list')
+    success_url = reverse_lazy('finance:record_list')
 
     def test_func(self):
         return self.request.user.has_perm('sales.add_sale')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Passa todos os produtos e preços para o JavaScript
-        products = Product.objects.all()
-        product_prices = {str(p.id): str(p.unit_price) for p in products}
-        context['product_prices_json'] = json.dumps(product_prices)
-        
-        if self.request.POST:
-            context['item_formset'] = SaleItemFormSet(self.request.POST, prefix='items')
-        else:
-            context['item_formset'] = SaleItemFormSet(prefix='items')
+        if 'item_formset' not in kwargs:
+            if self.request.POST:
+                context['item_formset'] = SaleItemFormSet(self.request.POST, prefix='items')
+            else:
+                context['item_formset'] = SaleItemFormSet(prefix='items')
         return context
 
-    def form_valid(self, form):
-        context = self.get_context_data()
-        item_formset = context['item_formset']
-        
-        if not item_formset.is_valid():
-            messages.error(self.request, "Por favor, corrija os erros nos itens da venda abaixo.")
-            return self.form_invalid(form)
+    # ========================================================
+    # ========= LÓGICA DE POST E VALIDAÇÃO CORRIGIDA =========
+    # ========================================================
+    def post(self, request, *args, **kwargs):
+        # Esta linha é crucial para o Django saber que ainda não há um objeto salvo
+        self.object = None 
+        form = self.get_form()
+        item_formset = SaleItemFormSet(request.POST, prefix='items')
 
-        with transaction.atomic():
-            form.instance.seller = self.request.user
-            self.object = form.save()
-            item_formset.instance = self.object
-            item_formset.save()
+        if form.is_valid() and item_formset.is_valid():
+            return self.form_valid(form, item_formset)
+        else:
+            # Se houver erros, renderiza a página novamente com os erros
+            messages.error(request, "Por favor, corrija os erros abaixo.")
+            # A forma correta de renderizar de novo sem quebrar
+            return self.render_to_response(
+                self.get_context_data(form=form, item_formset=item_formset)
+            )
 
-            total = sum(item.total for item in self.object.items.all() if item.total is not None)
-            self.object.total_value = total
-            self.object.save()
+    def form_valid(self, form, item_formset):
+        try:
+            with transaction.atomic():
+                form.instance.seller = self.request.user
+                self.object = form.save()
+                item_formset.instance = self.object
+                item_formset.save()
 
-            try:
+                # Recalcula o total baseado nos itens salvos
+                total = sum(item.get_total() for item in self.object.items.all() if item.product)
+                self.object.total_value = total
+                self.object.save()
+
+                # Cria as ordens de produção
                 first_stage = ProductionStage.objects.order_by('order').first()
                 if not first_stage:
                     raise Exception("Nenhum estágio de produção foi encontrado.")
@@ -77,33 +87,37 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                         user=self.object.seller, notes=f"Saída referente à Venda #{self.object.pk}")
                 
                 messages.success(self.request, "Venda registrada e Ordem de Produção enviada para o Kanban!")
-            
-            except Exception as e:
-                messages.error(self.request, f"Venda registrada, mas ocorreu um erro ao gerar a Ordem de Produção: {e}")
+        
+        except Exception as e:
+            messages.error(self.request, f"Ocorreu um erro e a venda não foi salva: {e}")
+            # Em caso de erro, retorna para o formulário com a mensagem
+            return self.render_to_response(self.get_context_data(form=form, item_formset=item_formset))
         
         return redirect(self.get_success_url())
 
-    def form_invalid(self, form):
-        context = self.get_context_data(form=form)
-        return self.render_to_response(context)
-
+# ========================================================
+# ========= VIEW DE BUSCA DE CLIENTE CORRIGIDA =========
+# ========================================================
 def customer_search_view(request):
     query = request.GET.get('term', '')
-    customers = Customer.objects.filter(name__icontains=query)[:10]
-    results = [{'id': c.id, 'text': c.name} for c in customers]
+    if query:
+        # Busca por nome OU telefone
+        customers = Customer.objects.filter(
+            Q(name__icontains=query) | Q(phone__icontains=query)
+        )[:10]
+    else:
+        customers = Customer.objects.none()
+    
+    results = [{'id': c.id, 'text': f"{c.name} ({c.phone})"} for c in customers]
     return JsonResponse(results, safe=False)
 
 def product_search_view(request):
     query = request.GET.get('term', '')
-    products = Product.objects.filter(
-        Q(name__icontains=query) | Q(code__icontains=query)
-    )[:10]
-    
-    results = []
-    for p in products:
-        results.append({
-            'id': p.id,
-            'text': f"{p.name} ({p.code})",
-            'price': f"{p.unit_price:.2f}"
-        })
+    if query:
+        products = Product.objects.filter(
+            Q(code__icontains=query) | Q(name__icontains=query)
+        )[:10]
+    else:
+        products = Product.objects.none()
+    results = [{'id': p.id, 'text': f"{p.name} ({p.code})", 'price': f"{p.unit_price:.2f}"} for p in products]
     return JsonResponse(results, safe=False)

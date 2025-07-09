@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import permission_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import pandas as pd
-from django.db.models import Q # 1. Importamos o 'Q'
+from django.db.models import Q
 
 from .models import Customer
 from .forms import CustomerForm
@@ -16,23 +16,17 @@ class CustomerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Customer
     template_name = 'customers/customer_list.html'
     context_object_name = 'customers'
-    
+    paginate_by = 15
+
     def test_func(self):
         return self.request.user.has_perm('customers.view_customer')
 
-    # ========================================================
-    # ========= LÓGICA DE BUSCA ADICIONADA ABAIXO =========
-    # ========================================================
     def get_queryset(self):
         queryset = super().get_queryset()
         query = self.request.GET.get('q', '').strip()
-
         if query:
-            # Filtra por nome, telefone ou CPF/CNPJ
             queryset = queryset.filter(
-                Q(name__icontains=query) |
-                Q(phone__icontains=query) |
-                Q(doc_number__icontains=query)
+                Q(name__icontains=query) | Q(phone__icontains=query) | Q(doc_number__icontains=query)
             )
         return queryset
 
@@ -41,29 +35,43 @@ class CustomerListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
         context['search_query'] = self.request.GET.get('q', '')
         return context
 
-
 class CustomerCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Customer
     form_class = CustomerForm
     template_name = 'customers/customer_form.html'
     success_url = reverse_lazy('customers:customer_list')
+    
     def test_func(self):
         return self.request.user.has_perm('customers.add_customer')
+    
+    def form_valid(self, form):
+        messages.success(self.request, "Cliente cadastrado com sucesso!")
+        return super().form_valid(form)
 
 class CustomerUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Customer
     form_class = CustomerForm
     template_name = 'customers/customer_form.html'
     success_url = reverse_lazy('customers:customer_list')
+    
     def test_func(self):
         return self.request.user.has_perm('customers.change_customer')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Cliente atualizado com sucesso!")
+        return super().form_valid(form)
 
 class CustomerDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Customer
     template_name = 'customers/customer_confirm_delete.html'
     success_url = reverse_lazy('customers:customer_list')
+    
     def test_func(self):
         return self.request.user.has_perm('customers.delete_customer')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Cliente excluído com sucesso!")
+        return super().form_valid(form)
 
 @permission_required('customers.add_customer', raise_exception=True)
 def import_customers_view(request):
