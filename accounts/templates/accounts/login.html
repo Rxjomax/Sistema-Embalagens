@@ -1,27 +1,72 @@
 {% extends "accounts/base_auth.html" %}
+{% load static %}
 
 {% block content %}
+<style>
+    :root {
+        --surface: #27272A; --primary-text: #FFFFFF; --secondary-text: #A1A1AA;
+        --input-bg: #3F3F46; --accent: #10B981; --accent-red: #ef4444;
+    }
+    .login-container {
+        width: 100%; max-width: 450px; background-color: var(--surface);
+        color: var(--primary-text); padding: 40px; border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center;
+    }
+    .login-logo { max-width: 150px; height: auto; margin-bottom: 24px; }
+    .form-header h1 { font-size: 1.8rem; font-weight: 600; margin-bottom: 8px; }
+    .form-header p { font-size: 0.9rem; color: var(--secondary-text); margin-bottom: 32px; }
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label { display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; }
+    /* Estilo que será aplicado pelo form do Django */
+    .form-control {
+        width: 100%; padding: 12px; font-size: 1rem;
+        background-color: var(--input-bg); border: 1px solid #52525B;
+        border-radius: 8px; color: var(--primary-text); outline: none;
+    }
+    .form-control:focus { border-color: var(--accent); }
+    .form-options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 0.8rem; }
+    .form-options a { color: var(--accent); text-decoration: none; }
+    .btn-login {
+        width: 100%; padding: 14px; background-color: var(--accent); color: white;
+        border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    }
+    .divider { display: flex; align-items: center; text-align: center; color: var(--secondary-text); font-size: 0.8rem; margin: 24px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #3F3F46; }
+    .social-login { display: flex; justify-content: center; gap: 20px; }
+    .social-btn { width: 50px; height: 50px; border: 1px solid #3F3F46; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--primary-text); }
+    .error-message { background-color: rgba(239, 68, 68, 0.1); color: var(--accent-red); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; }
+</style>
+
 <div class="login-container">
-    <h1>Login</h1>
+    <img src="{% static 'img/franciscoLogo.png' %}" alt="Logotipo Francisco Embalagens" class="login-logo">
+    <div class="form-header">
+        <h1>Bem vindo de volta</h1>
+        <p>Faça login na sua conta</p>
+    </div>
     <form method="post">
         {% csrf_token %}
-        <div class="input-group">
-            <i class="fas fa-envelope"></i>
-            <input type="email" name="username" placeholder="Email" required>
+        {% if form.non_field_errors %}<div class="error-message">{{ form.non_field_errors.as_text }}</div>{% endif %}
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+            {{ form.username }}
         </div>
-        <div class="input-group">
-            <i class="fas fa-lock"></i>
-            <input type="password" name="password" placeholder="Senha" required>
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">Senha</label>
+            {{ form.password }}
         </div>
-        
-        {% if form.errors %}
-            <p style="color: #ff4d4d; margin-bottom: 15px;">Seu email ou senha estão incorretos. Tente novamente.</p>
-        {% endif %}
-
-        <button type="submit" class="btn btn-primary">LOGIN</button>
-        
-        {# AQUI ESTÁ A CORREÇÃO: Usando 'accounts:password_reset' #}
-        <a href="{% url 'accounts:password_reset' %}" class="btn btn-secondary" style="text-decoration: none;">Esqueceu a senha?</a>
+        <div class="form-options">
+            <div>
+                <input type="checkbox" id="remember-me" name="remember_me">
+                <label for="remember-me" style="font-weight: 400; color: var(--secondary-text);">Lembrar-me</label>
+            </div>
+            <a href="{% url 'accounts:password_reset' %}">Esqueceu a senha?</a>
+        </div>
+        <button type="submit" class="btn-login">Entrar</button>
+        <div class="divider">Ou entre com</div>
+        <div class="social-login">
+            <span class="social-btn"><i class="fab fa-google"></i></span>
+            <span class="social-btn"><i class="fab fa-facebook-f"></i></span>
+        </div>
     </form>
 </div>
 {% endblock %}
