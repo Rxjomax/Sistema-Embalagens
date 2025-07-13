@@ -3,11 +3,13 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Sum, Q, F, Count
+from django.db.models import Sum, Q, F
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 from decimal import Decimal
+from django.core.exceptions import PermissionDenied # 1. Importamos a exceção necessária
 
+# Importamos os modelos de que precisamos
 from customers.models import Customer
 from products.models import Product
 from finance.models import FinancialRecord
@@ -15,11 +17,18 @@ from inventory.models import StockMovement
 
 @login_required
 def dashboard_view(request):
+    # =============================================
+    # ========= VERIFICAÇÃO DE PERMISSÃO ADICIONADA =========
+    # =============================================
+    # Se o usuário logado pertence ao grupo "Vendedor", nega o acesso.
+    if request.user.groups.filter(name='Vendedor').exists():
+        raise PermissionDenied
+
     today = timezone.now()
     current_year = today.year
     current_month = today.month
 
-    # --- DADOS PARA OS CARDS DE RESUMO ---
+    # --- Cálculos para os Cards de Resumo ---
     total_customers = Customer.objects.count()
     thirty_days_ago = today - timedelta(days=30)
     new_customers_last_30_days = Customer.objects.filter(created_at__gte=thirty_days_ago).count()
@@ -62,6 +71,7 @@ def dashboard_view(request):
         'profit': profit,
         'low_stock_products': low_stock_products,
         
+        # Dados para o gráfico de receita
         'revenue_chart_labels': revenue_chart_labels,
         'revenue_chart_data': revenue_chart_data,
         'stock_chart_labels': stock_chart_labels,
