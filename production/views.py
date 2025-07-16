@@ -16,15 +16,20 @@ from .models import ProductionStage, ProductionOrder
 from .forms import ProductionStageForm, ProductionOrderForm
 from finance.models import FinancialRecord
 from sales.models import Sale
-
-# --- 1. NOVAS IMPORTAÇÕES PARA OS FILTROS ---
 from customers.models import Customer
 from products.models import Product
 
 
+@login_required
 def kanban_board_view(request):
-    stages = ProductionStage.objects.prefetch_related('orders__product', 'orders__customer').all()
+    # --- CONSULTA OTIMIZADA PARA INCLUIR OS ITENS DA VENDA ---
+    stages = ProductionStage.objects.prefetch_related(
+        'orders__product', 
+        'orders__customer', 
+        'orders__sale_item' # Adicionamos isso para buscar os dados de cor
+    ).all()
     
+    # O resto da view não precisa de alterações, pois os dados agora estão no objeto 'order'
     stages_list = []
     for stage in stages:
         stages_list.append({
@@ -34,24 +39,20 @@ def kanban_board_view(request):
             'orders_list': list(stage.orders.all())
         })
 
-    # --- 2. BUSCANDO DADOS PARA OS MENUS DE FILTRO ---
     all_customers = Customer.objects.order_by('name')
     all_products = Product.objects.order_by('name')
 
     context = {
         'stages': stages_list,
-        # --- 3. ENVIANDO AS LISTAS PARA O TEMPLATE ---
         'all_customers': all_customers,
         'all_products': all_products,
     }
     
     return render(request, 'production/kanban_board.html', context)
 
-# --- O RESTANTE DO ARQUIVO PERMANECE IGUAL ---
 
 # --- VIEWS DE GESTÃO DE ESTÁGIOS ---
 class ProductionStageCreateView(LoginRequiredMixin, CreateView):
-    # ... (código existente sem alterações)
     model = ProductionStage
     form_class = ProductionStageForm
     template_name = 'production/stage_form.html'
@@ -62,7 +63,6 @@ class ProductionStageCreateView(LoginRequiredMixin, CreateView):
         return context
 
 class ProductionStageUpdateView(LoginRequiredMixin, UpdateView):
-    # ... (código existente sem alterações)
     model = ProductionStage
     form_class = ProductionStageForm
     template_name = 'production/stage_form.html'
@@ -73,7 +73,6 @@ class ProductionStageUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 class ProductionStageDeleteView(LoginRequiredMixin, DeleteView):
-    # ... (código existente sem alterações)
     model = ProductionStage
     template_name = 'production/stage_confirm_delete.html'
     success_url = reverse_lazy('production:kanban_board')
@@ -83,7 +82,6 @@ class ProductionStageDeleteView(LoginRequiredMixin, DeleteView):
 
 # --- VIEWS PARA GERIR ORDENS DE PRODUÇÃO ---
 class ProductionOrderCreateView(LoginRequiredMixin, CreateView):
-    # ... (código existente sem alterações)
     model = ProductionOrder
     form_class = ProductionOrderForm
     template_name = 'production/order_form.html'
@@ -98,7 +96,6 @@ class ProductionOrderCreateView(LoginRequiredMixin, CreateView):
         return context
 
 class ProductionOrderUpdateView(LoginRequiredMixin, UpdateView):
-    # ... (código existente sem alterações)
     model = ProductionOrder
     form_class = ProductionOrderForm
     template_name = 'production/order_form.html'
@@ -109,7 +106,6 @@ class ProductionOrderUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 class ProductionOrderDeleteView(LoginRequiredMixin, DeleteView):
-    # ... (código existente sem alterações)
     model = ProductionOrder
     template_name = 'production/order_confirm_delete.html'
     success_url = reverse_lazy('production:kanban_board')
@@ -120,15 +116,35 @@ class ProductionOrderDeleteView(LoginRequiredMixin, DeleteView):
 # --- APIs ---
 @login_required
 def production_order_details(request, pk):
-    # ... (código existente sem alterações)
-    order = get_object_or_404(ProductionOrder.objects.select_related('product', 'customer', 'stage', 'sale__seller'), pk=pk)
-    data = { 'order_number': order.order_number, 'product_name': order.product.name, 'quantity': order.quantity, 'customer_name': order.customer.name if order.customer else 'N/A', 'notes': order.notes or 'Nenhuma observação.', 'sale_id': order.sale.pk if order.sale else None, 'seller_name': order.sale.seller.username if order.sale and order.sale.seller else 'N/A', 'created_at': order.created_at.isoformat(), 'edit_url': reverse('production:order_update', kwargs={'pk': order.pk}), 'delete_url': reverse('production:order_delete', kwargs={'pk': order.pk}), 'sale_url': reverse('sales:sale_list') }
+    # --- VIEW DE DETALHES ATUALIZADA PARA INCLUIR AS CORES ---
+    order = get_object_or_404(
+        ProductionOrder.objects.select_related(
+            'product', 'customer', 'stage', 'sale__seller', 'sale_item'
+        ), pk=pk
+    )
+    
+    data = {
+        'order_number': order.order_number,
+        'product_name': order.product.name,
+        'quantity': order.quantity,
+        'customer_name': order.customer.name if order.customer else 'N/A',
+        'notes': order.notes or 'Nenhuma observação.',
+        'sale_id': order.sale.pk if order.sale else None,
+        'seller_name': order.sale.seller.username if order.sale and order.sale.seller else 'N/A',
+        'created_at': order.created_at.isoformat(),
+        'edit_url': reverse('production:order_update', kwargs={'pk': order.pk}),
+        'delete_url': reverse('production:order_delete', kwargs={'pk': order.pk}),
+        'sale_url': reverse('sales:sale_list'),
+        # Adicionando os novos dados de cor
+        'cor_embalagem': order.sale_item.cor_embalagem if order.sale_item else '-',
+        'cor_logo_1': order.sale_item.cor_logo_1 if order.sale_item else '-',
+        'cor_logo_2': order.sale_item.cor_logo_2 if order.sale_item else '-',
+    }
     return JsonResponse(data)
 
 @login_required
 @require_POST
 def update_order_stage(request):
-    # ... (código existente sem alterações)
     try:
         data = json.loads(request.body)
         order_id = data.get('order_id'); new_stage_id = data.get('stage_id')

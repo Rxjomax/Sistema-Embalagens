@@ -1,7 +1,7 @@
 # Ficheiro: sales/views.py
 
 from django.db import transaction
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import TemplateView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.db.models import Q
 
-from .models import Sale
+from .models import Sale, SaleItem
 from .forms import SaleForm, SaleItemFormSet
 from products.models import Product
 from production.models import ProductionOrder, ProductionStage
@@ -40,21 +40,15 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                 context['item_formset'] = SaleItemFormSet(prefix='items')
         return context
 
-    # ========================================================
-    # ========= LÓGICA DE POST E VALIDAÇÃO CORRIGIDA =========
-    # ========================================================
     def post(self, request, *args, **kwargs):
-        # Esta linha é crucial para o Django saber que ainda não há um objeto salvo
-        self.object = None 
+        self.object = None
         form = self.get_form()
         item_formset = SaleItemFormSet(request.POST, prefix='items')
 
         if form.is_valid() and item_formset.is_valid():
             return self.form_valid(form, item_formset)
         else:
-            # Se houver erros, renderiza a página novamente com os erros
             messages.error(request, "Por favor, corrija os erros abaixo.")
-            # A forma correta de renderizar de novo sem quebrar
             return self.render_to_response(
                 self.get_context_data(form=form, item_formset=item_formset)
             )
@@ -64,50 +58,57 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             with transaction.atomic():
                 form.instance.seller = self.request.user
                 self.object = form.save()
-                item_formset.instance = self.object
-                item_formset.save()
-
-                # Recalcula o total baseado nos itens salvos
+                
+                # Salva os itens da venda, mas sem commit ainda
+                items = item_formset.save(commit=False)
+                for item in items:
+                    item.sale = self.object
+                    item.save() # Salva cada item individualmente
+                
+                # Agora que os itens têm um ID, podemos criar as ordens
+                self.object.refresh_from_db()
+                
                 total = sum(item.get_total() for item in self.object.items.all() if item.product)
                 self.object.total_value = total
                 self.object.save()
 
-                # Cria as ordens de produção
                 first_stage = ProductionStage.objects.order_by('order').first()
                 if not first_stage:
                     raise Exception("Nenhum estágio de produção foi encontrado.")
                 
                 for item in self.object.items.all():
+                    # ========================================================
+                    # ========= CORREÇÃO APLICADA ABAIXO =========
+                    # ========================================================
                     ProductionOrder.objects.create(
-                        order_number=f"OP-{self.object.pk}-{item.pk}", product=item.product,
-                        quantity=item.quantity, stage=first_stage, customer=self.object.customer,
-                        created_by=self.object.seller, sale=self.object)
+                        order_number=f"OP-{self.object.pk}-{item.pk}",
+                        product=item.product,
+                        quantity=item.quantity,
+                        stage=first_stage,
+                        customer=self.object.customer,
+                        created_by=self.object.seller,
+                        sale=self.object,
+                        sale_item=item  # Conecta a Ordem de Produção ao Item da Venda
+                    )
                     StockMovement.objects.create(
                         product=item.product, quantity=item.quantity, movement_type='SAIDA',
                         user=self.object.seller, notes=f"Saída referente à Venda #{self.object.pk}")
                 
                 messages.success(self.request, "Venda registrada e Ordem de Produção enviada para o Kanban!")
-        
         except Exception as e:
             messages.error(self.request, f"Ocorreu um erro e a venda não foi salva: {e}")
-            # Em caso de erro, retorna para o formulário com a mensagem
             return self.render_to_response(self.get_context_data(form=form, item_formset=item_formset))
         
         return redirect(self.get_success_url())
 
-# ========================================================
-# ========= VIEW DE BUSCA DE CLIENTE CORRIGIDA =========
-# ========================================================
 def customer_search_view(request):
     query = request.GET.get('term', '')
     if query:
-        # Busca por nome OU telefone
         customers = Customer.objects.filter(
             Q(name__icontains=query) | Q(phone__icontains=query)
         )[:10]
     else:
         customers = Customer.objects.none()
-    
     results = [{'id': c.id, 'text': f"{c.name} ({c.phone})"} for c in customers]
     return JsonResponse(results, safe=False)
 
