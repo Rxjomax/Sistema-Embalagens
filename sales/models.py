@@ -5,6 +5,7 @@ from django.conf import settings
 from customers.models import Customer
 from products.models import Product
 from decimal import Decimal
+from django.utils import timezone # 1. Importamos o timezone
 
 class Sale(models.Model):
     STATUS_CHOICES = [
@@ -15,7 +16,11 @@ class Sale(models.Model):
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Cliente")
     seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="Vendedor")
-    sale_date = models.DateTimeField(auto_now_add=True, verbose_name="Data da Venda")
+    
+    # --- CAMPO DE DATA ATUALIZADO ---
+    # Agora usa default=timezone.now em vez de auto_now_add=True
+    sale_date = models.DateTimeField(default=timezone.now, verbose_name="Data da Venda")
+    
     total_value = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor Total")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='EM_ABERTO', verbose_name="Status")
     production_order_created = models.BooleanField(default=False, editable=False)
@@ -34,8 +39,6 @@ class SaleItem(models.Model):
     quantity = models.PositiveIntegerField(verbose_name="Quantidade")
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Preço Unitário")
     total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total do Item", default=0)
-
-    # --- CAMPOS DE COR ADICIONADOS ---
     cor_embalagem = models.CharField(max_length=50, blank=True, verbose_name="Cor da Embalagem")
     cor_logo_1 = models.CharField(max_length=50, blank=True, verbose_name="Cor Logo 1")
     cor_logo_2 = models.CharField(max_length=50, blank=True, verbose_name="Cor Logo 2")

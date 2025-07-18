@@ -6,22 +6,17 @@
     .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 16px; }
     .table-title { margin: 0; font-size: 1.2rem; }
     .header-actions { display: flex; gap: 10px; }
-    .btn-add, .btn-filter, .btn-clear-filter {
-        background-color: var(--accent-green); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
-    }
+    .btn-add, .btn-filter, .btn-clear-filter { background-color: var(--accent-green); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
     .btn-filter { background-color: var(--accent-blue); }
     .btn-clear-filter { background-color: #555; font-size: 0.9rem; padding: 8px 16px; }
 
-    /* Estilos dos Filtros Recolhíveis */
-    .filter-container {
-        display: none; /* COMEÇA ESCONDIDO */
-        gap: 20px; background-color: var(--card-bg); padding: 20px; border-radius: 12px;
-        margin-bottom: 24px; border: 1px solid var(--border-color); align-items: flex-end;
-    }
+    /* Estilos dos Filtros */
+    .filter-container { display: none; gap: 20px; background-color: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); align-items: flex-end; flex-wrap: wrap; }
     .filter-container.active { display: flex; }
-    .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 200px; }
     .filter-group label { font-size: 0.9rem; font-weight: 500; color: var(--secondary-text); }
-    .filter-group select { padding: 10px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
+    .filter-group select, .filter-group input { padding: 10px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
+    .filter-group.toggle { flex-direction: row; align-items: center; }
     
     /* Estilos Kanban */
     .kanban-board-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
@@ -36,17 +31,17 @@
     .kanban-cards { flex-grow: 1; min-height: 100px; list-style: none; padding: 5px; border-radius: 8px; background-color: #222; }
     .kanban-card { background-color: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: grab; position: relative; }
     .kanban-card.hidden { display: none; }
+    .kanban-card.delayed { border-left: 4px solid var(--accent-red); }
     .dragging { opacity: 0.5; }
     .card-title { margin: 0 0 8px 0; font-size: 1rem; color: var(--primary-text); }
     .card-info { font-size: 0.85rem; color: var(--secondary-text); margin: 4px 0; display:flex; align-items:center; gap: 8px;}
     .card-details-icon { position: absolute; top: 10px; right: 10px; color: var(--secondary-text); cursor: pointer; font-size: 0.9rem; padding: 5px; z-index: 2; }
     
-    /* Estilos para as cores no card */
     .card-colors { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
     .color-item { font-size: 0.8rem; }
     .color-item strong { display: block; color: var(--secondary-text); font-weight: 500; margin-bottom: 2px; }
     
-    /* Estilos para Minimizar Colunas */
+    /* --- ESTILOS PARA MINIMIZAR COLUNAS --- */
     .toggle-column-btn { background: none; border: none; color: var(--secondary-text); cursor: pointer; padding: 5px; font-size: 1rem; }
     .kanban-column.minimized { min-width: 200px; width: 200px; }
     .kanban-column.minimized .kanban-cards, .kanban-column.minimized .card-details-icon { display: none; }
@@ -75,20 +70,9 @@
 </div>
 
 <div class="filter-container" id="filter-container">
-    <div class="filter-group">
-        <label for="customer-filter">Filtrar por Cliente</label>
-        <select id="customer-filter">
-            <option value="">Todos os Clientes</option>
-            {% for customer in all_customers %}<option value="{{ customer.pk }}">{{ customer.name }}</option>{% endfor %}
-        </select>
-    </div>
-    <div class="filter-group">
-        <label for="product-filter">Filtrar por Produto</label>
-        <select id="product-filter">
-            <option value="">Todos os Produtos</option>
-            {% for product in all_products %}<option value="{{ product.pk }}">{{ product.name }}</option>{% endfor %}
-        </select>
-    </div>
+    <div class="filter-group"><label for="customer-filter">Filtrar por Cliente</label><select id="customer-filter"><option value="">Todos</option>{% for customer in all_customers %}<option value="{{ customer.pk }}">{{ customer.name }}</option>{% endfor %}</select></div>
+    <div class="filter-group"><label for="product-filter">Filtrar por Produto</label><select id="product-filter"><option value="">Todos</option>{% for product in all_products %}<option value="{{ product.pk }}">{{ product.name }}</option>{% endfor %}</select></div>
+    <div class="filter-group toggle"><input type="checkbox" id="delayed-filter" style="width: 20px; height: 20px;"><label for="delayed-filter" style="margin-bottom: 0;">Apenas Atrasados</label></div>
     <button id="clear-filter-btn" class="btn-clear-filter">Limpar</button>
 </div>
 
@@ -101,11 +85,12 @@
         </div>
         <ul class="kanban-cards" data-stage-id="{{ stage.id }}">
             {% for order in stage.orders_list %}
-            <li class="kanban-card" draggable="true" data-order-id="{{ order.id }}" data-customer-id="{{ order.customer.pk|default:'' }}" data-product-id="{{ order.product.pk|default:'' }}">
+            <li class="kanban-card {% if order.is_delayed %}delayed{% endif %}" draggable="true" data-order-id="{{ order.id }}" data-customer-id="{{ order.customer.pk|default:'' }}" data-product-id="{{ order.product.pk|default:'' }}" data-delayed="{{ order.is_delayed|yesno:'true,false' }}">
                 <span class="card-details-icon" title="Ver Detalhes"><i class="fas fa-eye"></i></span>
                 <h4 class="card-title">{{ order.product.name }} (x{{ order.quantity }})</h4>
                 <p class="card-info"><i class="fas fa-hashtag"></i>{{ order.order_number }}</p>
                 <p class="card-info"><i class="fas fa-user"></i>{{ order.customer.name|default:"N/A" }}</p>
+                <p class="card-info"><i class="fas fa-clock"></i>{{ order.created_at|date:"d/m/y H:i" }}</p>
 
                 {% if order.sale_item.cor_embalagem or order.sale_item.cor_logo_1 or order.sale_item.cor_logo_2 %}
                 <div class="card-colors">
@@ -123,10 +108,7 @@
 
 <div class="modal-overlay" id="order-details-modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modal-title">Detalhes da Ordem</h2>
-            <button class="modal-close" id="modal-close-btn">&times;</button>
-        </div>
+        <div class="modal-header"><h2 id="modal-title">Detalhes da Ordem</h2><button class="modal-close" id="modal-close-btn">&times;</button></div>
         <div class="modal-details">
             <div class="detail-grid">
                 <div class="detail-item"><strong>Produto</strong><p id="modal-product"></p></div>
@@ -141,10 +123,7 @@
             </div>
             <div class="detail-item-full" style="margin-top: 15px;"><strong>Observações</strong><p id="modal-notes" style="background-color: #222; padding: 10px; border-radius: 6px; min-height: 40px;"></p></div>
         </div>
-        <div class="modal-actions">
-            <a href="#" id="modal-edit-btn" class="btn btn-info">Editar</a>
-            <a href="#" id="modal-delete-btn" class="btn btn-danger">Excluir</a>
-        </div>
+        <div class="modal-actions"><a href="#" id="modal-edit-btn" class="btn btn-info">Editar</a><a href="#" id="modal-delete-btn" class="btn btn-danger">Excluir</a></div>
     </div>
 </div>
 
@@ -159,57 +138,79 @@
         const columns = document.querySelectorAll('.kanban-cards');
         let draggedCard = null;
 
-        // --- DRAG-AND-DROP ---
         board.addEventListener('dragstart', e => { if (e.target.classList.contains('kanban-card')) { draggedCard = e.target; setTimeout(() => e.target.classList.add('dragging'), 0); } });
         board.addEventListener('dragend', e => e.target.classList.remove('dragging'));
         columns.forEach(col => { col.addEventListener('dragover', e => e.preventDefault()); col.addEventListener('drop', e => { e.preventDefault(); if (draggedCard) { col.appendChild(draggedCard); updateCardStage(draggedCard.dataset.orderId, col.dataset.stageId); } }); });
         function updateCardStage(orderId, stageId) { fetch("{% url 'production:api_update_order_stage' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }, body: JSON.stringify({ 'order_id': orderId, 'stage_id': stageId }) }).then(res => res.json()).then(data => { if (data.status === 'success') { updateCardCounts(); } }); }
 
-        // --- FILTROS ---
         const customerFilter = document.getElementById('customer-filter');
         const productFilter = document.getElementById('product-filter');
+        const delayedFilter = document.getElementById('delayed-filter');
         const toggleFilterBtn = document.getElementById('toggle-filter-btn');
         const filterContainer = document.getElementById('filter-container');
         const clearFilterBtn = document.getElementById('clear-filter-btn');
+        
         function updateCardCounts() { columns.forEach(col => { const countSpan = document.getElementById(`count-${col.dataset.stageId}`); if (countSpan) { countSpan.textContent = col.querySelectorAll('.kanban-card:not(.hidden)').length; } }); }
-        function filterKanbanCards() { const selectedCustomer = customerFilter.value; const selectedProduct = productFilter.value; document.querySelectorAll('.kanban-card').forEach(card => { const customerMatch = (selectedCustomer === "") || (selectedCustomer === card.dataset.customerId); const productMatch = (selectedProduct === "") || (selectedProduct === card.dataset.productId); card.classList.toggle('hidden', !(customerMatch && productMatch)); }); updateCardCounts(); }
+        
+        function filterKanbanCards() {
+            const selectedCustomer = customerFilter.value;
+            const selectedProduct = productFilter.value;
+            const showDelayedOnly = delayedFilter.checked;
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                const customerMatch = (selectedCustomer === "") || (selectedCustomer === card.dataset.customerId);
+                const productMatch = (selectedProduct === "") || (selectedProduct === card.dataset.productId);
+                const delayedMatch = !showDelayedOnly || (card.dataset.delayed === 'true');
+                card.classList.toggle('hidden', !(customerMatch && productMatch && delayedMatch));
+            });
+            updateCardCounts();
+        }
         toggleFilterBtn.addEventListener('click', () => filterContainer.classList.toggle('active'));
-        clearFilterBtn.addEventListener('click', () => { customerFilter.value = ""; productFilter.value = ""; filterKanbanCards(); });
+        clearFilterBtn.addEventListener('click', () => { customerFilter.value = ""; productFilter.value = ""; delayedFilter.checked = false; filterKanbanCards(); });
         customerFilter.addEventListener('change', filterKanbanCards);
         productFilter.addEventListener('change', filterKanbanCards);
-
-        // --- MODAL ---
+        delayedFilter.addEventListener('change', filterKanbanCards);
+        
         const modalOverlay = document.getElementById('order-details-modal');
         const modalCloseBtn = document.getElementById('modal-close-btn');
         function openModal(orderId) {
-            fetch(`/producao/api/ordem/${orderId}/detalhes/`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('modal-title').innerText = `Detalhes da Ordem #${data.order_number}`;
-                    document.getElementById('modal-product').innerText = data.product_name;
-                    document.getElementById('modal-quantity').innerText = data.quantity;
-                    document.getElementById('modal-customer').innerText = data.customer_name;
-                    const saleLink = document.getElementById('modal-sale-link');
-                    saleLink.href = data.sale_url; saleLink.innerText = `Venda #${data.sale_id}`;
-                    const createdDate = new Date(data.created_at);
-                    document.getElementById('modal-created-date').innerText = createdDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    document.getElementById('modal-seller').innerText = data.seller_name;
-                    document.getElementById('modal-notes').innerText = data.notes || 'Nenhuma.';
-                    document.getElementById('modal-edit-btn').href = data.edit_url;
-                    document.getElementById('modal-delete-btn').href = data.delete_url;
-                    // Preenchendo as cores no modal
-                    document.getElementById('modal-cor-embalagem').innerText = data.cor_embalagem;
-                    document.getElementById('modal-cor-logo1').innerText = data.cor_logo_1;
-                    document.getElementById('modal-cor-logo2').innerText = data.cor_logo_2;
-                    modalOverlay.classList.add('show');
-                });
+            fetch(`/producao/api/ordem/${orderId}/detalhes/`).then(res => res.json()).then(data => {
+                document.getElementById('modal-title').innerText = `Detalhes da Ordem #${data.order_number}`;
+                document.getElementById('modal-product').innerText = data.product_name;
+                document.getElementById('modal-quantity').innerText = data.quantity;
+                document.getElementById('modal-customer').innerText = data.customer_name;
+                const saleLink = document.getElementById('modal-sale-link');
+                saleLink.href = data.sale_url; saleLink.innerText = `Venda #${data.sale_id}`;
+                const createdDate = new Date(data.created_at);
+                document.getElementById('modal-created-date').innerText = createdDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                document.getElementById('modal-seller').innerText = data.seller_name;
+                document.getElementById('modal-notes').innerText = data.notes || 'Nenhuma.';
+                document.getElementById('modal-edit-btn').href = data.edit_url;
+                document.getElementById('modal-delete-btn').href = data.delete_url;
+                document.getElementById('modal-cor-embalagem').innerText = data.cor_embalagem;
+                document.getElementById('modal-cor-logo1').innerText = data.cor_logo_1;
+                document.getElementById('modal-cor-logo2').innerText = data.cor_logo_2;
+                modalOverlay.classList.add('show');
+            });
         }
         if (modalCloseBtn) { modalCloseBtn.addEventListener('click', () => modalOverlay.classList.remove('show')); }
         board.addEventListener('click', event => { const detailsIcon = event.target.closest('.card-details-icon'); if (detailsIcon) { const card = detailsIcon.closest('.kanban-card'); if (card) { openModal(card.dataset.orderId); } } });
 
-        // --- MINIMIZAR COLUNAS ---
+        // --- LÓGICA DE MINIMIZAR COLUNAS (CORRIGIDA E COMPLETA) ---
         const toggleColumnBtns = document.querySelectorAll('.toggle-column-btn');
-        toggleColumnBtns.forEach(btn => { btn.addEventListener('click', function() { const column = this.closest('.kanban-column'); const icon = this.querySelector('i'); column.classList.toggle('minimized'); if (column.classList.contains('minimized')) { icon.classList.replace('fa-minus', 'fa-plus'); } else { icon.classList.replace('fa-plus', 'fa-minus'); } }); });
+        toggleColumnBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const column = this.closest('.kanban-column');
+                const icon = this.querySelector('i');
+                column.classList.toggle('minimized');
+                if (column.classList.contains('minimized')) {
+                    icon.classList.remove('fa-minus');
+                    icon.classList.add('fa-plus');
+                } else {
+                    icon.classList.remove('fa-plus');
+                    icon.classList.add('fa-minus');
+                }
+            });
+        });
     });
 </script>
 {% endblock %}

@@ -1,7 +1,7 @@
 # Ficheiro: sales/views.py
 
 from django.db import transaction
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.views.generic import TemplateView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
@@ -9,6 +9,7 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.db.models import Q
+from django.utils import timezone # 1. Importamos o timezone
 
 from .models import Sale, SaleItem
 from .forms import SaleForm, SaleItemFormSet
@@ -56,18 +57,25 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def form_valid(self, form, item_formset):
         try:
             with transaction.atomic():
-                form.instance.seller = self.request.user
-                self.object = form.save()
+                # --- CORREÇÃO APLICADA AQUI ---
+                # 1. Pega a instância da venda do formulário sem salvar no banco ainda
+                sale_instance = form.save(commit=False)
+
+                # 2. Verifica se a data veio em branco do formulário
+                if not sale_instance.sale_date:
+                    # 3. Se estiver em branco, define a data/hora atual
+                    sale_instance.sale_date = timezone.now()
                 
-                # Salva os itens da venda, mas sem commit ainda
-                items = item_formset.save(commit=False)
-                for item in items:
-                    item.sale = self.object
-                    item.save() # Salva cada item individualmente
+                # 4. Associa o vendedor
+                sale_instance.seller = self.request.user
                 
-                # Agora que os itens têm um ID, podemos criar as ordens
-                self.object.refresh_from_db()
-                
+                # 5. Agora, salva a instância da venda no banco
+                sale_instance.save()
+                self.object = sale_instance # Atualiza self.object para o resto da lógica
+
+                item_formset.instance = self.object
+                item_formset.save()
+
                 total = sum(item.get_total() for item in self.object.items.all() if item.product)
                 self.object.total_value = total
                 self.object.save()
@@ -77,19 +85,10 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                     raise Exception("Nenhum estágio de produção foi encontrado.")
                 
                 for item in self.object.items.all():
-                    # ========================================================
-                    # ========= CORREÇÃO APLICADA ABAIXO =========
-                    # ========================================================
                     ProductionOrder.objects.create(
-                        order_number=f"OP-{self.object.pk}-{item.pk}",
-                        product=item.product,
-                        quantity=item.quantity,
-                        stage=first_stage,
-                        customer=self.object.customer,
-                        created_by=self.object.seller,
-                        sale=self.object,
-                        sale_item=item  # Conecta a Ordem de Produção ao Item da Venda
-                    )
+                        order_number=f"OP-{self.object.pk}-{item.pk}", product=item.product,
+                        quantity=item.quantity, stage=first_stage, customer=self.object.customer,
+                        created_by=self.object.seller, sale=self.object, sale_item=item)
                     StockMovement.objects.create(
                         product=item.product, quantity=item.quantity, movement_type='SAIDA',
                         user=self.object.seller, notes=f"Saída referente à Venda #{self.object.pk}")

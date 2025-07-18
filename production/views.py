@@ -11,6 +11,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
+from django.utils import timezone # Importamos o timezone
+from datetime import timedelta # Importamos o timedelta
 
 from .models import ProductionStage, ProductionOrder
 from .forms import ProductionStageForm, ProductionOrderForm
@@ -18,7 +20,6 @@ from finance.models import FinancialRecord
 from sales.models import Sale
 from customers.models import Customer
 from products.models import Product
-
 
 @login_required
 def kanban_board_view(request):
@@ -29,14 +30,28 @@ def kanban_board_view(request):
         'orders__sale_item' # Adicionamos isso para buscar os dados de cor
     ).all()
     
-    # O resto da view não precisa de alterações, pois os dados agora estão no objeto 'order'
+    # --- LÓGICA DO FILTRO DE ATRASO ---
+    # 1. Encontra qual é o último estágio
+    last_stage = ProductionStage.objects.order_by('-order').first()
+    # 2. Define o limite de tempo (3 dias atrás)
+    delay_threshold = timezone.now() - timedelta(days=3)
+
     stages_list = []
     for stage in stages:
+        orders_data = []
+        for order in stage.orders.all():
+            # 3. Verifica se a ordem está atrasada
+            is_delayed = (order.created_at < delay_threshold) and (stage.id != last_stage.id if last_stage else True)
+            
+            # Adiciona o objeto completo da ordem mais o marcador de atraso
+            order.is_delayed = is_delayed
+            orders_data.append(order)
+
         stages_list.append({
             'id': stage.id,
             'name': stage.name,
             'pk': stage.pk,
-            'orders_list': list(stage.orders.all())
+            'orders_list': orders_data # Usamos a lista de objetos modificados
         })
 
     all_customers = Customer.objects.order_by('name')
@@ -49,7 +64,6 @@ def kanban_board_view(request):
     }
     
     return render(request, 'production/kanban_board.html', context)
-
 
 # --- VIEWS DE GESTÃO DE ESTÁGIOS ---
 class ProductionStageCreateView(LoginRequiredMixin, CreateView):
@@ -116,7 +130,6 @@ class ProductionOrderDeleteView(LoginRequiredMixin, DeleteView):
 # --- APIs ---
 @login_required
 def production_order_details(request, pk):
-    # --- VIEW DE DETALHES ATUALIZADA PARA INCLUIR AS CORES ---
     order = get_object_or_404(
         ProductionOrder.objects.select_related(
             'product', 'customer', 'stage', 'sale__seller', 'sale_item'
@@ -134,8 +147,7 @@ def production_order_details(request, pk):
         'created_at': order.created_at.isoformat(),
         'edit_url': reverse('production:order_update', kwargs={'pk': order.pk}),
         'delete_url': reverse('production:order_delete', kwargs={'pk': order.pk}),
-        'sale_url': reverse('sales:sale_list'),
-        # Adicionando os novos dados de cor
+        'sale_url': reverse('finance:record_manage', kwargs={'pk': order.sale.financial_record.pk}) if order.sale and hasattr(order.sale, 'financial_record') else '#',
         'cor_embalagem': order.sale_item.cor_embalagem if order.sale_item else '-',
         'cor_logo_1': order.sale_item.cor_logo_1 if order.sale_item else '-',
         'cor_logo_2': order.sale_item.cor_logo_2 if order.sale_item else '-',
