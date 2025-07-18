@@ -44,7 +44,7 @@
         color: var(--secondary-text); 
         text-decoration: none; 
         transition: color 0.2s;
-        font-size: 1.1rem; /* Aumentar um pouco o ícone */
+        font-size: 1.1rem;
     }
     .actions a:hover { 
         color: var(--accent-green); 
@@ -53,12 +53,25 @@
     .status-AGUARDANDO { color: var(--accent-yellow); }
     .status-ATRASADO { color: var(--accent-red); }
 
+    /* Estilos para os novos botões */
+    .header-actions { display: flex; gap: 10px; }
+    .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
+    .btn-secondary { background-color: #444; color: var(--primary-text); }
+    .btn-secondary.active { background-color: var(--accent-blue); color: white; }
+    .actions form { display: inline-block; margin-left: 15px; }
+    .btn-archive { background: none; border: none; color: var(--secondary-text); cursor: pointer; font-size: 1.1rem; padding: 0; }
+    .btn-archive:hover { color: var(--accent-red); }
+
 </style>
 
 <div class="table-container">
     <div class="table-header">
         <h2 class="table-title">Registros Financeiros</h2>
+        <div class="header-actions">
+            <a href="{% url 'finance:record_list' %}" class="btn btn-secondary {% if view_mode == 'active' %}active{% endif %}">Ativos</a>
+            <a href="{% url 'finance:record_list' %}?view=archived" class="btn btn-secondary {% if view_mode == 'archived' %}active{% endif %}">Arquivados</a>
         </div>
+    </div>
 
     <table class="styled-table">
         <thead>
@@ -81,12 +94,22 @@
                 <td><span class="status-{{ record.status }}">{{ record.get_status_display }}</span></td>
                 <td class="actions">
                     <a href="{% url 'finance:record_update' record.pk %}" title="Gerenciar Pagamento">
-                        <i class="fas fa-tasks"></i> </a>
+                        <i class="fas fa-tasks"></i>
+                    </a>
+                    
+                    {% if not record.is_archived %}
+                    <form method="post" action="{% url 'finance:record_archive' record.pk %}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja arquivar este registro?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-archive" title="Arquivar Registro">
+                            <i class="fas fa-archive"></i>
+                        </button>
+                    </form>
+                    {% endif %}
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align: center; padding: 20px;">Nenhum registro financeiro encontrado.</td>
+                <td colspan="6" style="text-align: center; padding: 20px;">Nenhum registro encontrado.</td>
             </tr>
             {% endfor %}
         </tbody>

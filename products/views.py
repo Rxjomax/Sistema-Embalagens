@@ -3,8 +3,8 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin # 1. Importamos o UserPassesTestMixin
-from django.contrib.auth.decorators import permission_required # Para a view de importação
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import permission_required
 from django.contrib import messages
 import pandas as pd
 from django.db.models import Q
@@ -13,10 +13,6 @@ from .models import Product
 from categories.models import Category
 from .forms import ProductForm
 
-
-# ================================================================
-# ========= CLASSE ATUALIZADA COM VERIFICAÇÃO DE PERMISSÃO =========
-# ================================================================
 class ProductListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Product
     template_name = 'products/product_list.html'
@@ -24,7 +20,6 @@ class ProductListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     paginate_by = 10
 
     def test_func(self):
-        # O teste: o usuário pode ver a página se for um superusuário OU tiver a permissão 'view_product'
         return self.request.user.is_superuser or self.request.user.has_perm('products.view_product')
 
     def get_queryset(self):
@@ -34,7 +29,8 @@ class ProductListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             queryset = queryset.filter(
                 Q(name__icontains=query) | Q(code__icontains=query)
             )
-        return queryset
+        # --- ORDENAÇÃO ADICIONADA AQUI ---
+        return queryset.order_by('name')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -68,10 +64,8 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.has_perm('products.delete_product')
 
-# Para a view de importação, que é baseada em função, usamos um "decorador"
 @permission_required('products.add_product', raise_exception=True)
 def import_products_view(request):
-    # ... (o resto do seu código de importação continua igual)
     if request.method == 'POST':
         excel_file = request.FILES.get('excel_file')
         if not excel_file or not excel_file.name.endswith('.xlsx'):

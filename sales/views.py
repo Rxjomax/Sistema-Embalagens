@@ -9,7 +9,7 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.db.models import Q
-from django.utils import timezone # 1. Importamos o timezone
+from django.utils import timezone
 
 from .models import Sale, SaleItem
 from .forms import SaleForm, SaleItemFormSet
@@ -26,8 +26,8 @@ class SaleListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Sale
     form_class = SaleForm
-    template_name = 'sales/sale_form.html'
-    success_url = reverse_lazy('finance:record_list')
+    template_name = 'sales/sale_form.html' # CORRIGIDO: Aponta para o template correto
+    success_url = reverse_lazy('sales:sale_list')
 
     def test_func(self):
         return self.request.user.has_perm('sales.add_sale')
@@ -57,21 +57,12 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def form_valid(self, form, item_formset):
         try:
             with transaction.atomic():
-                # --- CORREÇÃO APLICADA AQUI ---
-                # 1. Pega a instância da venda do formulário sem salvar no banco ainda
                 sale_instance = form.save(commit=False)
-
-                # 2. Verifica se a data veio em branco do formulário
                 if not sale_instance.sale_date:
-                    # 3. Se estiver em branco, define a data/hora atual
                     sale_instance.sale_date = timezone.now()
-                
-                # 4. Associa o vendedor
                 sale_instance.seller = self.request.user
-                
-                # 5. Agora, salva a instância da venda no banco
                 sale_instance.save()
-                self.object = sale_instance # Atualiza self.object para o resto da lógica
+                self.object = sale_instance
 
                 item_formset.instance = self.object
                 item_formset.save()
@@ -88,7 +79,9 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                     ProductionOrder.objects.create(
                         order_number=f"OP-{self.object.pk}-{item.pk}", product=item.product,
                         quantity=item.quantity, stage=first_stage, customer=self.object.customer,
-                        created_by=self.object.seller, sale=self.object, sale_item=item)
+                        created_by=self.object.seller, sale=self.object, sale_item=item,
+                        notes=self.object.notes
+                    )
                     StockMovement.objects.create(
                         product=item.product, quantity=item.quantity, movement_type='SAIDA',
                         user=self.object.seller, notes=f"Saída referente à Venda #{self.object.pk}")
@@ -103,9 +96,7 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 def customer_search_view(request):
     query = request.GET.get('term', '')
     if query:
-        customers = Customer.objects.filter(
-            Q(name__icontains=query) | Q(phone__icontains=query)
-        )[:10]
+        customers = Customer.objects.filter(Q(name__icontains=query) | Q(phone__icontains=query))[:10]
     else:
         customers = Customer.objects.none()
     results = [{'id': c.id, 'text': f"{c.name} ({c.phone})"} for c in customers]
@@ -114,11 +105,8 @@ def customer_search_view(request):
 def product_search_view(request):
     query = request.GET.get('term', '')
     if query:
-        products = Product.objects.filter(
-            Q(code__icontains=query) | Q(name__icontains=query)
-        )[:10]
+        products = Product.objects.filter(Q(code__icontains=query) | Q(name__icontains=query))[:10]
     else:
         products = Product.objects.none()
     results = [{'id': p.id, 'text': f"{p.name} ({p.code})", 'price': f"{p.unit_price:.2f}"} for p in products]
     return JsonResponse(results, safe=False)
-

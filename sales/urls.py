@@ -1,11 +1,6 @@
 # Ficheiro: sales/urls.py
 from django.urls import path
-from .views import (
-    SaleListView, 
-    SaleCreateView, 
-    customer_search_view, 
-    product_search_view
-)
+from .views import SaleListView, SaleCreateView, customer_search_view, product_search_view
 
 app_name = 'sales'
 

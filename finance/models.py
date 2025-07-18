@@ -52,6 +52,9 @@ class FinancialRecord(models.Model):
 
     installments = models.PositiveIntegerField(default=1, verbose_name="Número de Parcelas")
     
+    # --- NOVO CAMPO ADICIONADO ABAIXO ---
+    is_archived = models.BooleanField(default=False, verbose_name="Arquivado")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -82,14 +85,9 @@ class Installment(models.Model):
     value = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor da Parcela")
     due_date = models.DateField(verbose_name="Data de Vencimento")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDENTE', verbose_name="Status")
-
-    # ================================================================
-    # ========= NOVOS CAMPOS ADICIONADOS ABAIXO =========
-    # ================================================================
     paid_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Valor Pago")
     paid_at = models.DateField(null=True, blank=True, verbose_name="Data de Pagamento")
     
-
     class Meta:
         verbose_name = "Parcela"
         verbose_name_plural = "Parcelas"

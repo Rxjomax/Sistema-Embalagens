@@ -9,65 +9,38 @@
     .btn-action { color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
     .btn-add { background-color: var(--accent-green); }
     .btn-import { background-color: #3b82f6; }
-
-    /* --- ESTILOS PARA A BARRA DE BUSCA --- */
     .search-form { display: flex; align-items: center; gap: 10px; }
-    .search-input {
-        padding: 10px 15px;
-        background-color: #333;
-        border: 1px solid #444;
-        border-radius: 8px;
-        color: var(--primary-text);
-        font-size: 1rem;
-        width: 250px;
-    }
-    .search-btn {
-        background-color: var(--accent-green);
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-    
-    /* --- ESTILOS DA TABELA --- */
+    .search-input { padding: 10px 15px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; width: 250px; }
+    .search-btn { background-color: var(--accent-green); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
+    .table-wrapper { overflow-x: auto; }
     .styled-table { width: 100%; border-collapse: collapse; }
     .styled-table thead tr { background-color: #333; }
-    .styled-table th, .styled-table td { 
-        padding: 12px 15px; 
-        text-align: left; 
-        white-space: nowrap; /* Impede que o texto quebre a linha */
-    }
+    .styled-table th, .styled-table td { padding: 12px 15px; text-align: left; white-space: nowrap; }
     .styled-table tbody tr { border-bottom: 1px solid var(--border-color); }
     .actions a { color: var(--secondary-text); text-decoration: none; transition: color 0.2s; }
     .actions a:hover { color: var(--accent-green); }
     .actions a.delete:hover { color: #ef4444; }
 
-    /* ============================================= */
-    /* ========= CORREÇÃO RESPONSIVA ABAIXO ======== */
-    /* ============================================= */
-    .table-wrapper {
-        overflow-x: auto; /* Adiciona a rolagem horizontal APENAS se necessário */
-        width: 100%;
+    /* --- ESTILOS PARA A PAGINAÇÃO --- */
+    .pagination { margin-top: 24px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .pagination a, .pagination .current {
+        color: var(--primary-text); text-decoration: none; padding: 8px 14px;
+        border-radius: 6px; background-color: #333;
     }
+    .pagination a:hover { background-color: var(--accent-green); }
+    .pagination .current { background-color: var(--accent-blue); font-weight: bold; }
 </style>
 
 <div class="table-container">
     <div class="table-header">
         <h2 class="table-title">Produtos Cadastrados</h2>
-        
         <form method="get" action="{% url 'products:product_list' %}" class="search-form">
             <input type="text" name="q" class="search-input" placeholder="Buscar por nome ou código..." value="{{ search_query }}">
             <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
         </form>
-
         <div class="table-header-actions">
-            <a href="{% url 'products:product_import' %}" class="btn-action btn-import">
-                <i class="fas fa-file-import"></i> Importar
-            </a>
-            <a href="{% url 'products:product_add' %}" class="btn-action btn-add">
-                <i class="fas fa-plus"></i> Adicionar Produto
-            </a>
+            <a href="{% url 'products:product_import' %}" class="btn-action btn-import"><i class="fas fa-file-import"></i> Importar</a>
+            <a href="{% url 'products:product_add' %}" class="btn-action btn-add"><i class="fas fa-plus"></i> Adicionar Produto</a>
         </div>
     </div>
 
@@ -75,11 +48,7 @@
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>Nome</th>
-                    <th>Código</th>
-                    <th>Categoria</th>
-                    <th>Valor Unitário</th>
-                    <th>Ações</th>
+                    <th>Nome</th><th>Código</th><th>Categoria</th><th>Valor Unitário</th><th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -95,12 +64,28 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 20px;">Nenhum produto cadastrado ainda.</td>
-                </tr>
+                <tr><td colspan="5" style="text-align: center; padding: 20px;">Nenhum produto cadastrado ainda.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; Primeira</a>
+            <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+        {% endif %}
+
+        <span class="current">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Próxima</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -9,24 +9,19 @@ from core.forms import RequiredFieldsMixin
 class SaleForm(RequiredFieldsMixin, forms.ModelForm):
     customer_search = forms.CharField(
         label="Cliente", required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Buscar por nome ou telefone...',
-            'autocomplete': 'off'
-        })
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Buscar por nome ou telefone...','autocomplete': 'off'})
+    )
+    sale_date = forms.DateTimeField(
+        label="Data da Venda", required=False,
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'})
     )
     class Meta:
         model = Sale
-        fields = ['customer', 'sale_date']
+        fields = ['customer', 'sale_date', 'notes']
         widgets = {
             'customer': forms.HiddenInput(),
-            'sale_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Adicione observações para a produção (opcional)...'}),
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['sale_date'].required = False
-
     def clean(self):
         cleaned_data = super().clean()
         if not cleaned_data.get('customer'):
@@ -36,11 +31,7 @@ class SaleForm(RequiredFieldsMixin, forms.ModelForm):
 class SaleItemForm(forms.ModelForm):
     product_search = forms.CharField(
         label="Produto", required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control product-search-input',
-            'placeholder': 'Buscar por nome ou código...',
-            'autocomplete': 'off'
-        })
+        widget=forms.TextInput(attrs={'class': 'form-control product-search-input', 'placeholder': 'Buscar por nome ou código...', 'autocomplete': 'off'})
     )
     class Meta:
         model = SaleItem
@@ -48,15 +39,11 @@ class SaleItemForm(forms.ModelForm):
         widgets = {
             'product': forms.HiddenInput(),
             'quantity': forms.NumberInput(attrs={'class': 'form-control quantity-input', 'min': '1', 'value': '1'}),
-            
-            # --- CAMPO DE PREÇO ATUALIZADO ---
-            'unit_price': forms.NumberInput(attrs={'class': 'form-control price-input'}), # Removido 'readonly'
-            
+            'unit_price': forms.NumberInput(attrs={'class': 'form-control price-input'}),
             'cor_embalagem': forms.TextInput(attrs={'class': 'form-control color-input', 'placeholder': 'Ex: Preto'}),
             'cor_logo_1': forms.TextInput(attrs={'class': 'form-control color-input', 'placeholder': 'Ex: Branco'}),
             'cor_logo_2': forms.TextInput(attrs={'class': 'form-control color-input', 'placeholder': 'Ex: Vermelho'}),
         }
-    
     def clean(self):
         cleaned_data = super().clean()
         if not self.cleaned_data.get('DELETE', False) and not cleaned_data.get('product'):
@@ -65,6 +52,5 @@ class SaleItemForm(forms.ModelForm):
 
 SaleItemFormSet = forms.inlineformset_factory(
     Sale, SaleItem, form=SaleItemForm,
-    extra=1,
-    can_delete=True
+    extra=1, can_delete=True
 )

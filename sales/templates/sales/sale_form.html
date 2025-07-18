@@ -3,38 +3,30 @@
 
 {% block content %}
 <style>
-    /* --- ESTRUTURA E FORMULÁRIO --- */
     .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 1100px; margin: auto; }
     .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
     .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; min-height: 21px; /* Garante alinhamento */ }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; min-height: 21px; }
     .form-control { width: 100%; padding: 12px; background-color: #333; border: 1px solid #444; border-radius: 8px; color: var(--primary-text); font-size: 1rem; }
     .form-actions { margin-top: 32px; display: flex; justify-content: flex-end; align-items: center; gap: 16px; flex-wrap: wrap; }
     .btn { padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
     .btn-add-item { background-color: var(--accent-blue); }
-    .btn-remove-item { background-color: #ef4444; color: white; border-radius: 6px; padding: 8px 12px; }
-    #grand-total { font-size: 1.2rem; font-weight: bold; margin-right: auto; }
-
-    /* --- LAYOUT DA VENDA --- */
-    .sale-header-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .item-form-group { background-color: #2a2a2a; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #383838; }
+    .btn-remove-item { background-color: #ef4444; color: white; border-radius: 6px; }
+    .item-form-group { background-color: #2a2a2a; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #383838;}
     .main-item-row { display: grid; grid-template-columns: 4fr 1fr 1.5fr 1.5fr auto; gap: 15px; align-items: flex-start; }
     .color-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;}
-    
-    /* --- AUTOCOMPLETE --- */
+    #grand-total { font-size: 1.2rem; font-weight: bold; margin-right: auto; }
     .autocomplete-container, .product-search-cell { position: relative; }
     .autocomplete-results { position: absolute; top: 100%; left: 0; right: 0; background-color: #444; border: 1px solid #555; z-index: 1000; max-height: 200px; overflow-y: auto; display: none; border-radius: 0 0 8px 8px;}
     .autocomplete-item { padding: 10px 15px; cursor: pointer; }
     .autocomplete-item:hover { background-color: var(--accent-blue); }
     .errorlist { color: #ef4444; list-style: none; padding: 0; margin-top: 5px; font-size: 0.9rem; }
+    .sale-header-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 
-    /* --- RESPONSIVIDADE --- */
     @media (max-width: 992px) {
-        .sale-header-row { grid-template-columns: 1fr; }
-        .main-item-row { grid-template-columns: 1fr; }
-        .color-inputs { grid-template-columns: 1fr; }
+        .sale-header-row, .main-item-row, .color-inputs { grid-template-columns: 1fr; }
         .form-actions { justify-content: center; }
     }
 </style>
@@ -45,21 +37,21 @@
         <h2 class="form-title">Registrar Nova Venda</h2>
         <div class="sale-header-row">
             <div class="form-group autocomplete-container">{{ form.customer_search.label_tag }}{{ form.customer_search }}{{ form.customer }}<div id="autocomplete-results-list" class="autocomplete-results"></div>{{ form.customer_search.errors }}</div>
-            <div class="form-group">{{ form.sale_date.label_tag }}{{ form.sale_date }}{{ form.sale_date.errors }}</div>
+            <div class="form-group">{{ form.sale_date.label_tag }}{{ form.sale_date }}</div>
         </div>
+        <div class="form-group">{{ form.notes.label_tag }}{{ form.notes }}</div>
 
         <h3 style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">Itens da Venda</h3>
         {{ item_formset.management_form }}
-        {% if item_formset.non_form_errors %}<div class="errorlist">{{ item_formset.non_form_errors }}</div>{% endif %}
         
         <div id="item-formset-container">
             {% for item_form in item_formset %}
             <div class="item-form-group">
                 <div class="main-item-row">
                     {{ item_form.id }}
-                    <div class="product-search-cell form-group"><label for="{{ item_form.product_search.id_for_label }}">Produto</label>{{ item_form.product_search }}{{ item_form.product }}<div class="autocomplete-results"></div>{{ item_form.product_search.errors }}</div>
-                    <div class="form-group">{{ item_form.quantity.label_tag }}{{ item_form.quantity }}{{ item_form.quantity.errors }}</div>
-                    <div class="form-group">{{ item_form.unit_price.label_tag }}{{ item_form.unit_price }}{{ item_form.unit_price.errors }}</div>
+                    <div class="product-search-cell form-group">{{ item_form.product_search.label_tag }}{{ item_form.product_search }}{{ item_form.product }}<div class="autocomplete-results"></div>{{ item_form.product_search.errors }}</div>
+                    <div class="form-group">{{ item_form.quantity.label_tag }}{{ item_form.quantity }}</div>
+                    <div class="form-group">{{ item_form.unit_price.label_tag }}{{ item_form.unit_price }}</div>
                     <div class="form-group"><label>Total</label><input type="text" class="form-control total-cell" value="R$ 0.00" readonly></div>
                     <div class="form-group" style="padding-top: 29px; text-align:center;">{% if item_form.DELETE %}<div style="display:none">{{ item_form.DELETE }}</div>{% endif %}<button type="button" class="btn-remove-item">Remover</button></div>
                 </div>
@@ -77,7 +69,7 @@
             <div class="item-form-group">
                 <div class="main-item-row">
                     {{ item_formset.empty_form.id }}
-                    <div class="product-search-cell form-group"><label for="id_{{ item_formset.empty_form.prefix }}-product_search">Produto</label>{{ item_formset.empty_form.product_search }}{{ item_formset.empty_form.product }}<div class="autocomplete-results"></div></div>
+                    <div class="product-search-cell form-group">{{ item_formset.empty_form.product_search.label_tag }}{{ item_formset.empty_form.product_search }}{{ item_formset.empty_form.product }}<div class="autocomplete-results"></div></div>
                     <div class="form-group">{{ item_formset.empty_form.quantity.label_tag }}{{ item_formset.empty_form.quantity }}</div>
                     <div class="form-group">{{ item_formset.empty_form.unit_price.label_tag }}{{ item_formset.empty_form.unit_price }}</div>
                     <div class="form-group"><label>Total</label><input type="text" class="form-control total-cell" value="R$ 0.00" readonly></div>
@@ -159,15 +151,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
         quantityInput.addEventListener('input', () => calculateRowTotal(rowGroup));
-        priceInput.addEventListener('input', () => calculateRowTotal(rowGroup)); // Garante que a edição manual recalcule
+        priceInput.addEventListener('input', () => calculateRowTotal(rowGroup));
         document.addEventListener('click', e => { if (!e.target.closest('.product-search-cell')) { resultsList.style.display = 'none'; } });
     }
 
     addItemBtn.addEventListener('click', function() {
         let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, totalFormsInput.value);
-        const newFormGroup = document.createElement('div');
-        newFormGroup.innerHTML = newFormHtml;
-        const itemFormGroup = newFormGroup.querySelector('.item-form-group');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        const itemFormGroup = tempDiv.querySelector('.item-form-group');
         formsetContainer.appendChild(itemFormGroup);
         setupRowEventListeners(itemFormGroup);
         totalFormsInput.value = parseInt(totalFormsInput.value) + 1;
@@ -185,13 +177,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // CORREÇÃO: Garante que os eventos sejam aplicados na primeira linha ao carregar
     document.querySelectorAll('.item-form-group').forEach(group => {
         setupRowEventListeners(group);
         calculateRowTotal(group);
     });
 
-    // SCRIPT PARA AUTOCOMPLETE DE CLIENTES
     const customerSearchInput = document.getElementById('id_customer_search');
     const customerHiddenInput = document.getElementById('id_customer');
     const customerResultsList = document.getElementById('autocomplete-results-list');

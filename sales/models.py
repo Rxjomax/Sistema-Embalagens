@@ -5,7 +5,7 @@ from django.conf import settings
 from customers.models import Customer
 from products.models import Product
 from decimal import Decimal
-from django.utils import timezone # 1. Importamos o timezone
+from django.utils import timezone
 
 class Sale(models.Model):
     STATUS_CHOICES = [
@@ -16,14 +16,13 @@ class Sale(models.Model):
 
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Cliente")
     seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="Vendedor")
-    
-    # --- CAMPO DE DATA ATUALIZADO ---
-    # Agora usa default=timezone.now em vez de auto_now_add=True
     sale_date = models.DateTimeField(default=timezone.now, verbose_name="Data da Venda")
-    
     total_value = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor Total")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='EM_ABERTO', verbose_name="Status")
     production_order_created = models.BooleanField(default=False, editable=False)
+
+    # --- NOVO CAMPO ADICIONADO ABAIXO ---
+    notes = models.TextField(blank=True, verbose_name="Observações da Venda")
 
     class Meta:
         verbose_name = "Venda"

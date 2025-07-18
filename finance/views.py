@@ -2,7 +2,7 @@
 
 from django.views.generic import ListView, UpdateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
@@ -22,10 +22,21 @@ class FinancialRecordListView(LoginRequiredMixin, UserPassesTestMixin, ListView)
     model = FinancialRecord
     template_name = 'finance/financial_record_list.html'
     context_object_name = 'records'
-    queryset = FinancialRecord.objects.select_related('sale__customer').order_by('status', '-created_at')
-
+    
     def test_func(self):
         return self.request.user.has_perm('finance.view_financialrecord')
+
+    def get_queryset(self):
+        # Filtra para mostrar arquivados ou não-arquivados com base no parâmetro 'view' na URL
+        show_archived = self.request.GET.get('view') == 'archived'
+        queryset = FinancialRecord.objects.filter(is_archived=show_archived)
+        return queryset.select_related('sale__customer').order_by('status', '-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Informa ao template qual visualização está ativa para estilizar o botão correto
+        context['view_mode'] = self.request.GET.get('view', 'active')
+        return context
 
 class FinancialRecordUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = FinancialRecord
@@ -53,7 +64,7 @@ class FinancialRecordUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateV
                             financial_record=self.object, installment_number=i,
                             value=installment_value, due_date=due_date, status='PENDENTE'
                         )
-                messages.success(self.request, "Número de parcelas alterado e novas parcelas geradas!")
+                    messages.success(self.request, "Número de parcelas alterado e novas parcelas geradas!")
             else:
                 messages.success(self.request, "Registro financeiro atualizado com sucesso!")
         return redirect(self.get_success_url())
@@ -84,6 +95,17 @@ class ManageInstallmentView(LoginRequiredMixin, View):
             return JsonResponse({'status': 'success', 'message': 'Parcela atualizada!'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+# --- NOVA VIEW PARA ARQUIVAR UM REGISTRO ---
+@login_required
+@permission_required('finance.change_financialrecord', raise_exception=True)
+def archive_financial_record(request, pk):
+    record = get_object_or_404(FinancialRecord, pk=pk)
+    if request.method == 'POST':
+        record.is_archived = True
+        record.save()
+        messages.success(request, f"O registro da Venda #{record.sale.pk} foi arquivado.")
+    return redirect('finance:record_list')
 
 @permission_required('finance.view_financialrecord', raise_exception=True)
 def monthly_report_view(request):
