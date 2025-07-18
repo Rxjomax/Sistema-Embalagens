@@ -121,3 +121,4 @@ def product_search_view(request):
         products = Product.objects.none()
     results = [{'id': p.id, 'text': f"{p.name} ({p.code})", 'price': f"{p.unit_price:.2f}"} for p in products]
     return JsonResponse(results, safe=False)
+
