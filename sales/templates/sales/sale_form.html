@@ -1,9 +1,11 @@
+
+
 {% extends "dashboard/base_app.html" %}
 {% block page_title %}Registrar Venda{% endblock %}
 
 {% block content %}
 <style>
-    .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 1100px; margin: auto; }
+    .form-container { background-color: var(--card-bg); border-radius: 12px; padding: 32px; border: 1px solid var(--border-color); max-width: 1200px; margin: auto; }
     .form-title { margin-top: 0; margin-bottom: 24px; font-size: 1.5rem; }
     .form-group { margin-bottom: 20px; }
     .form-group label { display: block; margin-bottom: 8px; font-weight: 500; min-height: 21px; }
@@ -13,9 +15,9 @@
     .btn-primary { background-color: var(--accent-green); color: white; }
     .btn-secondary { background-color: #444; color: var(--primary-text); }
     .btn-add-item { background-color: var(--accent-blue); }
-    .btn-remove-item { background-color: #ef4444; color: white; border-radius: 6px; }
+    .btn-remove-item { background-color: #ef4444; color: white; }
     .item-form-group { background-color: #2a2a2a; padding: 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #383838;}
-    .main-item-row { display: grid; grid-template-columns: 4fr 1fr 1.5fr 1.5fr auto; gap: 15px; align-items: flex-start; }
+    .main-item-row { display: grid; grid-template-columns: 4fr 1fr 1fr 1.5fr 1.5fr auto; gap: 15px; align-items: flex-start; }
     .color-inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;}
     #grand-total { font-size: 1.2rem; font-weight: bold; margin-right: auto; }
     .autocomplete-container, .product-search-cell { position: relative; }
@@ -51,6 +53,7 @@
                     {{ item_form.id }}
                     <div class="product-search-cell form-group">{{ item_form.product_search.label_tag }}{{ item_form.product_search }}{{ item_form.product }}<div class="autocomplete-results"></div>{{ item_form.product_search.errors }}</div>
                     <div class="form-group">{{ item_form.quantity.label_tag }}{{ item_form.quantity }}</div>
+                    <div class="form-group">{{ item_form.gramatura.label_tag }}{{ item_form.gramatura }}</div>
                     <div class="form-group">{{ item_form.unit_price.label_tag }}{{ item_form.unit_price }}</div>
                     <div class="form-group"><label>Total</label><input type="text" class="form-control total-cell" value="R$ 0.00" readonly></div>
                     <div class="form-group" style="padding-top: 29px; text-align:center;">{% if item_form.DELETE %}<div style="display:none">{{ item_form.DELETE }}</div>{% endif %}<button type="button" class="btn-remove-item">Remover</button></div>
@@ -71,6 +74,7 @@
                     {{ item_formset.empty_form.id }}
                     <div class="product-search-cell form-group">{{ item_formset.empty_form.product_search.label_tag }}{{ item_formset.empty_form.product_search }}{{ item_formset.empty_form.product }}<div class="autocomplete-results"></div></div>
                     <div class="form-group">{{ item_formset.empty_form.quantity.label_tag }}{{ item_formset.empty_form.quantity }}</div>
+                    <div class="form-group">{{ item_formset.empty_form.gramatura.label_tag }}{{ item_formset.empty_form.gramatura }}</div>
                     <div class="form-group">{{ item_formset.empty_form.unit_price.label_tag }}{{ item_formset.empty_form.unit_price }}</div>
                     <div class="form-group"><label>Total</label><input type="text" class="form-control total-cell" value="R$ 0.00" readonly></div>
                     <div class="form-group" style="padding-top: 29px; text-align:center;"><button type="button" class="btn-remove-item">Remover</button></div>
@@ -92,123 +96,123 @@
 </form>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const formsetContainer = document.getElementById('item-formset-container');
-    const addItemBtn = document.getElementById('add-item-btn');
-    const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
-    const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
+    document.addEventListener('DOMContentLoaded', function() {
+        const formsetContainer = document.getElementById('item-formset-container');
+        const addItemBtn = document.getElementById('add-item-btn');
+        const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
+        const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
 
-    function calculateRowTotal(formGroup) {
-        const quantity = parseFloat(formGroup.querySelector('.quantity-input')?.value) || 0;
-        const price = parseFloat(formGroup.querySelector('.price-input')?.value) || 0;
-        const totalCell = formGroup.querySelector('.total-cell');
-        if (totalCell) { totalCell.value = `R$ ${(quantity * price).toFixed(2)}`; }
-        updateGrandTotal();
-    }
-    function updateGrandTotal() {
-        let grandTotal = 0;
-        document.querySelectorAll('.item-form-group').forEach(group => {
-            const deleteCheckbox = group.querySelector('input[type=checkbox][name$="-DELETE"]');
-            if (!deleteCheckbox || !deleteCheckbox.checked) {
-                const totalCell = group.querySelector('.total-cell');
-                grandTotal += parseFloat(totalCell.value.replace('R$ ', '').replace(',', '.')) || 0;
+        function calculateRowTotal(formGroup) {
+            const quantity = parseFloat(formGroup.querySelector('.quantity-input')?.value) || 0;
+            const price = parseFloat(formGroup.querySelector('.price-input')?.value) || 0;
+            const totalCell = formGroup.querySelector('.total-cell');
+            if (totalCell) { totalCell.value = `R$ ${(quantity * price).toFixed(2)}`; }
+            updateGrandTotal();
+        }
+        function updateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('.item-form-group').forEach(group => {
+                const deleteCheckbox = group.querySelector('input[type=checkbox][name$="-DELETE"]');
+                if (!deleteCheckbox || !deleteCheckbox.checked) {
+                    const totalCell = group.querySelector('.total-cell');
+                    grandTotal += parseFloat(totalCell.value.replace('R$ ', '').replace(',', '.')) || 0;
+                }
+            });
+            document.getElementById('grand-total').textContent = `Total da Venda: R$ ${grandTotal.toFixed(2)}`;
+        }
+
+        function setupRowEventListeners(rowGroup) {
+            const productSearchInput = rowGroup.querySelector('.product-search-input');
+            const productHiddenInput = rowGroup.querySelector('input[type=hidden][name$="-product"]');
+            const resultsList = rowGroup.querySelector('.autocomplete-results');
+            const priceInput = rowGroup.querySelector('.price-input');
+            const quantityInput = rowGroup.querySelector('.quantity-input');
+            if (!productSearchInput || !quantityInput) return;
+
+            productSearchInput.addEventListener('keyup', function() {
+                const query = this.value;
+                if (query.length < 1) { resultsList.style.display = 'none'; return; }
+                fetch(`{% url 'sales:product_search' %}?term=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultsList.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(product => {
+                                const item = document.createElement('div');
+                                item.classList.add('autocomplete-item');
+                                item.textContent = product.text;
+                                item.addEventListener('click', () => {
+                                    productSearchInput.value = product.text;
+                                    productHiddenInput.value = product.id;
+                                    priceInput.value = parseFloat(product.price).toFixed(2);
+                                    resultsList.style.display = 'none';
+                                    calculateRowTotal(rowGroup);
+                                });
+                                resultsList.appendChild(item);
+                            });
+                            resultsList.style.display = 'block';
+                        }
+                    });
+            });
+            quantityInput.addEventListener('input', () => calculateRowTotal(rowGroup));
+            priceInput.addEventListener('input', () => calculateRowTotal(rowGroup));
+            document.addEventListener('click', e => { if (!e.target.closest('.product-search-cell')) { resultsList.style.display = 'none'; } });
+        }
+
+        addItemBtn.addEventListener('click', function() {
+            let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, totalFormsInput.value);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newFormHtml;
+            const itemFormGroup = tempDiv.querySelector('.item-form-group');
+            formsetContainer.appendChild(itemFormGroup);
+            setupRowEventListeners(itemFormGroup);
+            totalFormsInput.value = parseInt(totalFormsInput.value) + 1;
+        });
+
+        formsetContainer.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('btn-remove-item')) {
+                const groupToRemove = e.target.closest('.item-form-group');
+                const deleteCheckbox = groupToRemove.querySelector('input[type=checkbox][name$="-DELETE"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = true;
+                    groupToRemove.style.display = 'none';
+                } else { groupToRemove.remove(); }
+                updateGrandTotal();
             }
         });
-        document.getElementById('grand-total').textContent = `Total da Venda: R$ ${grandTotal.toFixed(2)}`;
-    }
 
-    function setupRowEventListeners(rowGroup) {
-        const productSearchInput = rowGroup.querySelector('.product-search-input');
-        const productHiddenInput = rowGroup.querySelector('input[type=hidden][name$="-product"]');
-        const resultsList = rowGroup.querySelector('.autocomplete-results');
-        const priceInput = rowGroup.querySelector('.price-input');
-        const quantityInput = rowGroup.querySelector('.quantity-input');
-        if (!productSearchInput || !quantityInput) return;
+        document.querySelectorAll('.item-form-group').forEach(group => {
+            setupRowEventListeners(group);
+            calculateRowTotal(group);
+        });
 
-        productSearchInput.addEventListener('keyup', function() {
+        const customerSearchInput = document.getElementById('id_customer_search');
+        const customerHiddenInput = document.getElementById('id_customer');
+        const customerResultsList = document.getElementById('autocomplete-results-list');
+        customerSearchInput.addEventListener('keyup', function() {
             const query = this.value;
-            if (query.length < 1) { resultsList.style.display = 'none'; return; }
-            fetch(`{% url 'sales:product_search' %}?term=${query}`)
+            if (query.length < 1) { customerResultsList.style.display = 'none'; customerHiddenInput.value = ''; return; }
+            fetch(`{% url 'sales:customer_search' %}?term=${query}`)
                 .then(response => response.json())
                 .then(data => {
-                    resultsList.innerHTML = '';
+                    customerResultsList.innerHTML = '';
                     if (data.length > 0) {
-                        data.forEach(product => {
+                        data.forEach(customer => {
                             const item = document.createElement('div');
                             item.classList.add('autocomplete-item');
-                            item.textContent = product.text;
+                            item.textContent = customer.text;
                             item.addEventListener('click', () => {
-                                productSearchInput.value = product.text;
-                                productHiddenInput.value = product.id;
-                                priceInput.value = parseFloat(product.price).toFixed(2);
-                                resultsList.style.display = 'none';
-                                calculateRowTotal(rowGroup);
+                                customerSearchInput.value = customer.text;
+                                customerHiddenInput.value = customer.id;
+                                customerResultsList.style.display = 'none';
                             });
-                            resultsList.appendChild(item);
+                            customerResultsList.appendChild(item);
                         });
-                        resultsList.style.display = 'block';
+                        customerResultsList.style.display = 'block';
                     }
                 });
         });
-        quantityInput.addEventListener('input', () => calculateRowTotal(rowGroup));
-        priceInput.addEventListener('input', () => calculateRowTotal(rowGroup));
-        document.addEventListener('click', e => { if (!e.target.closest('.product-search-cell')) { resultsList.style.display = 'none'; } });
-    }
-
-    addItemBtn.addEventListener('click', function() {
-        let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, totalFormsInput.value);
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = newFormHtml;
-        const itemFormGroup = tempDiv.querySelector('.item-form-group');
-        formsetContainer.appendChild(itemFormGroup);
-        setupRowEventListeners(itemFormGroup);
-        totalFormsInput.value = parseInt(totalFormsInput.value) + 1;
+        document.addEventListener('click', e => { if (!e.target.closest('.autocomplete-container')) { customerResultsList.style.display = 'none'; } });
     });
-
-    formsetContainer.addEventListener('click', function(e) {
-        if (e.target && e.target.classList.contains('btn-remove-item')) {
-            const groupToRemove = e.target.closest('.item-form-group');
-            const deleteCheckbox = groupToRemove.querySelector('input[type=checkbox][name$="-DELETE"]');
-            if (deleteCheckbox) {
-                deleteCheckbox.checked = true;
-                groupToRemove.style.display = 'none';
-            } else { groupToRemove.remove(); }
-            updateGrandTotal();
-        }
-    });
-
-    document.querySelectorAll('.item-form-group').forEach(group => {
-        setupRowEventListeners(group);
-        calculateRowTotal(group);
-    });
-
-    const customerSearchInput = document.getElementById('id_customer_search');
-    const customerHiddenInput = document.getElementById('id_customer');
-    const customerResultsList = document.getElementById('autocomplete-results-list');
-    customerSearchInput.addEventListener('keyup', function() {
-        const query = this.value;
-        if (query.length < 1) { customerResultsList.style.display = 'none'; customerHiddenInput.value = ''; return; }
-        fetch(`{% url 'sales:customer_search' %}?term=${query}`)
-            .then(response => response.json())
-            .then(data => {
-                customerResultsList.innerHTML = '';
-                if (data.length > 0) {
-                    data.forEach(customer => {
-                        const item = document.createElement('div');
-                        item.classList.add('autocomplete-item');
-                        item.textContent = customer.text;
-                        item.addEventListener('click', () => {
-                            customerSearchInput.value = customer.text;
-                            customerHiddenInput.value = customer.id;
-                            customerResultsList.style.display = 'none';
-                        });
-                        customerResultsList.appendChild(item);
-                    });
-                    customerResultsList.style.display = 'block';
-                }
-            });
-    });
-    document.addEventListener('click', e => { if (!e.target.closest('.autocomplete-container')) { customerResultsList.style.display = 'none'; } });
-});
-</script>
+    </script>
 {% endblock %}

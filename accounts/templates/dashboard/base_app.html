@@ -96,6 +96,44 @@
             .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000; display: none; }
             body.sidebar-mobile-open .sidebar-overlay { display: block; }
         }
+
+        /* --- ESTILOS PARA AS NOTIFICAÇÕES --- */
+        .notification-bell { position: relative; cursor: pointer; }
+        .notification-count {
+            position: absolute;
+            top: -5px; right: -8px;
+            background-color: var(--accent-red);
+            color: white;
+            border-radius: 50%;
+            width: 18px; height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        .notification-dropdown {
+            display: none; /* Começa escondido */
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 350px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1002;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .notification-header { padding: 12px 15px; font-weight: 600; border-bottom: 1px solid var(--border-color); }
+        .notification-list { list-style: none; padding: 0; margin: 0; }
+        .notification-item { padding: 12px 15px; border-bottom: 1px solid var(--border-color); }
+        .notification-item:last-child { border-bottom: none; }
+        .notification-item a { text-decoration: none; color: var(--primary-text); }
+        .notification-item p { margin: 0; font-size: 0.9rem; }
+        .notification-item .customer-name { font-weight: 600; }
+        .notification-item .due-date { font-size: 0.8rem; color: var(--accent-red); }
     </style>
 </head>
 <body class="{% if request.COOKIES.sidebarState == 'collapsed' %}sidebar-collapsed{% endif %}">
@@ -144,6 +182,29 @@
                         <button type="submit"><i class="fas fa-search"></i></button>
                     </form>
                     <div class="user-menu">
+                        <div class="notification-bell" id="notification-bell">
+                            <i class="fas fa-bell"></i>
+                            {% if overdue_count > 0 %}
+                                <span class="notification-count">{{ overdue_count }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="notification-dropdown" id="notification-dropdown">
+                            <div class="notification-header">Parcelas Vencidas</div>
+                            <ul class="notification-list">
+                                {% for installment in overdue_installments %}
+                                    <li class="notification-item">
+                                        <a href="{% url 'finance:record_manage' installment.financial_record.pk %}">
+                                            <p><span class="customer-name">{{ installment.financial_record.sale.customer.name }}</span> - Parcela {{ installment.installment_number }}</p>
+                                            <p class="due-date">Venceu em: {{ installment.due_date|date:"d/m/Y" }}</p>
+                                        </a>
+                                    </li>
+                                {% empty %}
+                                    <li class="notification-item"><p>Nenhuma notificação.</p></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
                         <a href="{% url 'users:user_update' request.user.pk %}" title="Meu Perfil"><i class="fas fa-user-cog"></i></a>
                         {% if user_profile.photo %}<img src="{{ user_profile.photo.url }}" class="avatar" alt="Foto de Perfil">{% else %}<div class="avatar"></div>{% endif %}
                         <form action="{% url 'accounts:logout' %}" method="post" style="display: flex;">
@@ -158,9 +219,7 @@
                     {% if messages %}
                     <div class="messages-container" style="padding-bottom: 16px;">
                         {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            {{ message }}
-                        </div>
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -190,6 +249,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (overlay) overlay.addEventListener('click', toggleMobile);
     window.addEventListener('resize', checkScreenSize);
     checkScreenSize();
+
+    // --- SCRIPT PARA AS NOTIFICAÇÕES ---
+    const notificationBell = document.getElementById('notification-bell');
+    const notificationDropdown = document.getElementById('notification-dropdown');
+
+    if (notificationBell) {
+        notificationBell.addEventListener('click', function(event) {
+            event.stopPropagation();
+            notificationDropdown.style.display = notificationDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.addEventListener('click', function(event) {
+            if (notificationDropdown.style.display === 'block' && !notificationBell.contains(event.target)) {
+                notificationDropdown.style.display = 'none';
+            }
+        });
+    }
 });
 </script>
 </body>

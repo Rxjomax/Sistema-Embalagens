@@ -26,7 +26,7 @@ class SaleListView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Sale
     form_class = SaleForm
-    template_name = 'sales/sale_form.html' # CORRIGIDO: Aponta para o template correto
+    template_name = 'sales/sale_form.html'
     success_url = reverse_lazy('sales:sale_list')
 
     def test_func(self):
@@ -80,8 +80,7 @@ class SaleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
                         order_number=f"OP-{self.object.pk}-{item.pk}", product=item.product,
                         quantity=item.quantity, stage=first_stage, customer=self.object.customer,
                         created_by=self.object.seller, sale=self.object, sale_item=item,
-                        notes=self.object.notes
-                    )
+                        notes=self.object.notes)
                     StockMovement.objects.create(
                         product=item.product, quantity=item.quantity, movement_type='SAIDA',
                         user=self.object.seller, notes=f"Saída referente à Venda #{self.object.pk}")

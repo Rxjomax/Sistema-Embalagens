@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
-from django.utils import timezone # Importamos o timezone
-from datetime import timedelta # Importamos o timedelta
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import ProductionStage, ProductionOrder
 from .forms import ProductionStageForm, ProductionOrderForm
@@ -23,27 +23,20 @@ from products.models import Product
 
 @login_required
 def kanban_board_view(request):
-    # --- CONSULTA OTIMIZADA PARA INCLUIR OS ITENS DA VENDA ---
     stages = ProductionStage.objects.prefetch_related(
         'orders__product', 
         'orders__customer', 
-        'orders__sale_item' # Adicionamos isso para buscar os dados de cor
+        'orders__sale_item'
     ).all()
     
-    # --- LÓGICA DO FILTRO DE ATRASO ---
-    # 1. Encontra qual é o último estágio
     last_stage = ProductionStage.objects.order_by('-order').first()
-    # 2. Define o limite de tempo (3 dias atrás)
     delay_threshold = timezone.now() - timedelta(days=3)
 
     stages_list = []
     for stage in stages:
         orders_data = []
         for order in stage.orders.all():
-            # 3. Verifica se a ordem está atrasada
             is_delayed = (order.created_at < delay_threshold) and (stage.id != last_stage.id if last_stage else True)
-            
-            # Adiciona o objeto completo da ordem mais o marcador de atraso
             order.is_delayed = is_delayed
             orders_data.append(order)
 
@@ -51,7 +44,7 @@ def kanban_board_view(request):
             'id': stage.id,
             'name': stage.name,
             'pk': stage.pk,
-            'orders_list': orders_data # Usamos a lista de objetos modificados
+            'orders_list': orders_data
         })
 
     all_customers = Customer.objects.order_by('name')
@@ -65,7 +58,7 @@ def kanban_board_view(request):
     
     return render(request, 'production/kanban_board.html', context)
 
-# --- VIEWS DE GESTÃO DE ESTÁGIOS ---
+# --- VIEWS DE GESTÃO DE ESTÁGIOS E ORDENS ---
 class ProductionStageCreateView(LoginRequiredMixin, CreateView):
     model = ProductionStage
     form_class = ProductionStageForm
@@ -94,21 +87,6 @@ class ProductionStageDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, f"O estágio '{self.object.name}' foi excluído.")
         return super().form_valid(form)
 
-# --- VIEWS PARA GERIR ORDENS DE PRODUÇÃO ---
-class ProductionOrderCreateView(LoginRequiredMixin, CreateView):
-    model = ProductionOrder
-    form_class = ProductionOrderForm
-    template_name = 'production/order_form.html'
-    success_url = reverse_lazy('production:kanban_board')
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        messages.success(self.request, f"A ordem '{form.instance.order_number}' foi criada.")
-        return super().form_valid(form)
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['page_title'] = "Criar Nova Ordem de Produção"
-        return context
-
 class ProductionOrderUpdateView(LoginRequiredMixin, UpdateView):
     model = ProductionOrder
     form_class = ProductionOrderForm
@@ -136,6 +114,8 @@ def production_order_details(request, pk):
         ), pk=pk
     )
     
+    gramatura_display = f"{order.sale_item.gramatura}g" if order.sale_item and order.sale_item.gramatura is not None else '-'
+    
     data = {
         'order_number': order.order_number,
         'product_name': order.product.name,
@@ -148,9 +128,14 @@ def production_order_details(request, pk):
         'edit_url': reverse('production:order_update', kwargs={'pk': order.pk}),
         'delete_url': reverse('production:order_delete', kwargs={'pk': order.pk}),
         'sale_url': reverse('finance:record_manage', kwargs={'pk': order.sale.financial_record.pk}) if order.sale and hasattr(order.sale, 'financial_record') else '#',
-        'cor_embalagem': order.sale_item.cor_embalagem if order.sale_item else '-',
-        'cor_logo_1': order.sale_item.cor_logo_1 if order.sale_item else '-',
-        'cor_logo_2': order.sale_item.cor_logo_2 if order.sale_item else '-',
+        'cor_embalagem': order.sale_item.cor_embalagem if order.sale_item and order.sale_item.cor_embalagem else '-',
+        'cor_logo_1': order.sale_item.cor_logo_1 if order.sale_item and order.sale_item.cor_logo_1 else '-',
+        'cor_logo_2': order.sale_item.cor_logo_2 if order.sale_item and order.sale_item.cor_logo_2 else '-',
+        'gramatura': gramatura_display,
+        # --- DADOS DE ENDEREÇO ADICIONADOS AO JSON ---
+        'address': f"{order.customer.address}, {order.customer.number}" if order.customer else '-',
+        'city_state': f"{order.customer.city} - {order.customer.state}" if order.customer else '-',
+        'cep': order.customer.cep if order.customer else '-',
     }
     return JsonResponse(data)
 
@@ -168,7 +153,3 @@ def update_order_stage(request):
         return JsonResponse({'status': 'success'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    
-
-
-    

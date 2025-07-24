@@ -20,8 +20,6 @@ class Sale(models.Model):
     total_value = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Valor Total")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='EM_ABERTO', verbose_name="Status")
     production_order_created = models.BooleanField(default=False, editable=False)
-
-    # --- NOVO CAMPO ADICIONADO ABAIXO ---
     notes = models.TextField(blank=True, verbose_name="Observações da Venda")
 
     class Meta:
@@ -41,6 +39,9 @@ class SaleItem(models.Model):
     cor_embalagem = models.CharField(max_length=50, blank=True, verbose_name="Cor da Embalagem")
     cor_logo_1 = models.CharField(max_length=50, blank=True, verbose_name="Cor Logo 1")
     cor_logo_2 = models.CharField(max_length=50, blank=True, verbose_name="Cor Logo 2")
+
+    # --- NOVO CAMPO ADICIONADO ABAIXO ---
+    gramatura = models.PositiveIntegerField(null=True, blank=True, verbose_name="Gramatura (g)")
 
     class Meta:
         verbose_name = "Item da Venda"

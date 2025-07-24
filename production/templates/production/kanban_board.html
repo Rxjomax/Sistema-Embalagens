@@ -6,18 +6,12 @@
     .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 16px; }
     .table-title { margin: 0; font-size: 1.2rem; }
     .header-actions { display: flex; gap: 10px; }
-    .btn-add, .btn-filter, .btn-clear-filter {
-        background-color: var(--accent-green); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
-    }
+    .btn { background-color: var(--accent-green); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
     .btn-filter { background-color: var(--accent-blue); }
     .btn-clear-filter { background-color: #555; font-size: 0.9rem; padding: 8px 16px; }
 
-    /* Estilos dos Filtros Recolhíveis */
-    .filter-container {
-        display: none;
-        gap: 20px; background-color: var(--card-bg); padding: 20px; border-radius: 12px;
-        margin-bottom: 24px; border: 1px solid var(--border-color); align-items: flex-end; flex-wrap: wrap;
-    }
+    /* Estilos dos Filtros */
+    .filter-container { display: none; gap: 20px; background-color: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border-color); align-items: flex-end; flex-wrap: wrap; }
     .filter-container.active { display: flex; }
     .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 200px; }
     .filter-group label { font-size: 0.9rem; font-weight: 500; color: var(--secondary-text); }
@@ -27,33 +21,27 @@
     /* Estilos Kanban */
     .kanban-board-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; align-items: flex-start; }
     .kanban-column { min-width: 320px; width: 320px; background-color: var(--card-bg); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; border-top: 4px solid; transition: min-width 0.3s ease, width 0.3s ease; }
-    .kanban-column:nth-child(1) { border-top-color: #8B5CF6; }
-    .kanban-column:nth-child(2) { border-top-color: #4A90E2; }
-    .kanban-column:nth-child(3) { border-top-color: #EC4899; }
-    .kanban-column:nth-child(4) { border-top-color: #50E3C2; }
-    .kanban-column:nth-child(5) { border-top-color: #F5A623; }
-    .kanban-column:nth-child(6) { border-top-color: #10B981; }
+    .kanban-column:nth-child(1) { border-top-color: #8B5CF6; } .kanban-column:nth-child(2) { border-top-color: #4A90E2; } .kanban-column:nth-child(3) { border-top-color: #EC4899; } .kanban-column:nth-child(4) { border-top-color: #50E3C2; } .kanban-column:nth-child(5) { border-top-color: #F5A623; } .kanban-column:nth-child(6) { border-top-color: #10B981; }
 
     .kanban-column-header { padding-bottom: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-    .kanban-column-header h3 { margin: 0; font-size: 1.1rem; }
     .kanban-cards { flex-grow: 1; min-height: 100px; list-style: none; padding: 5px; border-radius: 8px; background-color: #222; }
     .kanban-card { background-color: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: grab; position: relative; }
     .kanban-card.hidden { display: none; }
     .kanban-card.delayed { border-left: 4px solid var(--accent-red); }
-    .dragging { opacity: 0.5; }
     .card-title { margin: 0 0 8px 0; font-size: 1rem; color: var(--primary-text); }
     .card-info { font-size: 0.85rem; color: var(--secondary-text); margin: 4px 0; display:flex; align-items:center; gap: 8px;}
     .card-details-icon { position: absolute; top: 10px; right: 10px; color: var(--secondary-text); cursor: pointer; font-size: 0.9rem; padding: 5px; z-index: 2; }
     
-    .card-colors { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
-    .color-item { font-size: 0.8rem; }
-    .color-item strong { display: block; color: var(--secondary-text); font-weight: 500; margin-bottom: 2px; }
+    .card-specs { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
+    .spec-item { font-size: 0.8rem; }
+    .spec-item strong { display: block; color: var(--secondary-text); font-weight: 500; margin-bottom: 2px; }
     .card-notes { background-color: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 8px 12px; margin-top: 10px; font-size: 0.85rem; color: #fcd34d; white-space: pre-wrap; }
+    .card-address { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
+    .address-line { font-size: 0.85rem; color: var(--secondary-text); margin: 4px 0; display:flex; align-items:center; gap: 8px; }
     
     .toggle-column-btn { background: none; border: none; color: var(--secondary-text); cursor: pointer; padding: 5px; font-size: 1rem; }
-    .kanban-column.minimized { min-width: 200px; width: 200px; }
-    .kanban-column.minimized .kanban-cards, .kanban-column.minimized .card-details-icon { display: none; }
-    .kanban-column.minimized .kanban-column-header h3 { width: 100%; }
+    .kanban-column.minimized { min-width: 50px; width: 50px; }
+    .kanban-column.minimized .kanban-cards, .kanban-column.minimized .card-details-icon, .kanban-column.minimized .kanban-column-header h3 { display: none; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
     .modal-overlay.show { display: flex; }
@@ -64,14 +52,14 @@
     .modal-details .detail-item strong { display: block; color: var(--secondary-text); font-size: 0.8rem; margin-bottom: 5px; }
     .modal-details .detail-item p, .modal-details .detail-item a { margin: 0; font-size: 1.05rem; color: #fff; text-decoration: none; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-    .btn-info { background-color: #4a90e2; }
-    .btn-danger { background-color: #e53e3e; }
+    .btn-info { background-color: #4a90e2; color: white; }
+    .btn-danger { background-color: #e53e3e; color: white; }
 </style>
 
 <div class="table-header">
     <h2 class="table-title">Quadro de Produção</h2>
     <div class="header-actions">
-        <button id="toggle-filter-btn" class="btn-filter"><i class="fas fa-filter"></i> Filtros</button>
+        <button id="toggle-filter-btn" class="btn btn-filter"><i class="fas fa-filter"></i> Filtros</button>
     </div>
 </div>
 
@@ -84,7 +72,7 @@
 
 <div class="kanban-board-container" id="kanban-board">
     {% for stage in stages %}
-    <div class="kanban-column" id="stage-{{ stage.id }}">
+    <div class="kanban-column" id="stage-{{ stage.id }}" data-stage-name="{{ stage.name }}">
         <div class="kanban-column-header">
             <h3>{{ stage.name }} <span class="card-count" id="count-{{ stage.id }}">{{ stage.orders_list|length }}</span></h3>
             <button class="toggle-column-btn" title="Recolher/Expandir"><i class="fas fa-minus"></i></button>
@@ -97,16 +85,19 @@
                 <p class="card-info"><i class="fas fa-hashtag"></i>{{ order.order_number }}</p>
                 <p class="card-info"><i class="fas fa-user"></i>{{ order.customer.name|default:"N/A" }}</p>
                 <p class="card-info"><i class="fas fa-clock"></i>{{ order.created_at|date:"d/m/y H:i" }}</p>
-
                 {% if order.notes %}<p class="card-notes">{{ order.notes }}</p>{% endif %}
-
-                {% if order.sale_item.cor_embalagem or order.sale_item.cor_logo_1 or order.sale_item.cor_logo_2 %}
-                <div class="card-colors">
-                    {% if order.sale_item.cor_embalagem %}<div class="color-item"><strong>Emb.:</strong> {{ order.sale_item.cor_embalagem }}</div>{% endif %}
-                    {% if order.sale_item.cor_logo_1 %}<div class="color-item"><strong>Logo 1:</strong> {{ order.sale_item.cor_logo_1 }}</div>{% endif %}
-                    {% if order.sale_item.cor_logo_2 %}<div class="color-item"><strong>Logo 2:</strong> {{ order.sale_item.cor_logo_2 }}</div>{% endif %}
+                <div class="card-specs">
+                    {% if order.sale_item.gramatura %}<div class="spec-item"><strong>Gramatura</strong> {{ order.sale_item.gramatura }}g</div>{% endif %}
+                    {% if order.sale_item.cor_embalagem %}<div class="spec-item"><strong>Emb.</strong> {{ order.sale_item.cor_embalagem }}</div>{% endif %}
+                    {% if order.sale_item.cor_logo_1 %}<div class="spec-item"><strong>Logo 1</strong> {{ order.sale_item.cor_logo_1 }}</div>{% endif %}
+                    {% if order.sale_item.cor_logo_2 %}<div class="spec-item"><strong>Logo 2</strong> {{ order.sale_item.cor_logo_2 }}</div>{% endif %}
                 </div>
-                {% endif %}
+                <div class="card-address">
+                    {% if order.customer %}
+                    <p class="address-line"><i class="fas fa-map-marker-alt"></i>{{ order.customer.address }}, {{ order.customer.number }}</p>
+                    <p class="address-line"><i class="fas fa-map-pin"></i>{{ order.customer.city }} - {{ order.customer.state }} | CEP: {{ order.customer.cep }}</p>
+                    {% endif %}
+                </div>
             </li>
             {% endfor %}
         </ul>
@@ -121,13 +112,15 @@
             <div class="detail-grid">
                 <div class="detail-item"><strong>Produto</strong><p id="modal-product"></p></div>
                 <div class="detail-item"><strong>Quantidade</strong><p id="modal-quantity"></p></div>
+                <div class="detail-item"><strong>Gramatura</strong><p id="modal-gramatura"></p></div>
                 <div class="detail-item"><strong>Cliente</strong><p id="modal-customer"></p></div>
-                <div class="detail-item"><strong>Venda de Origem</strong><a id="modal-sale-link" href="#" target="_blank"></a></div>
-                <div class="detail-item"><strong>Data de Criação</strong><p id="modal-created-date"></p></div>
-                <div class="detail-item"><strong>Vendedor</strong><p id="modal-seller"></p></div>
                 <div class="detail-item"><strong>Cor Embalagem</strong><p id="modal-cor-embalagem"></p></div>
                 <div class="detail-item"><strong>Cor Logo 1</strong><p id="modal-cor-logo1"></p></div>
                 <div class="detail-item"><strong>Cor Logo 2</strong><p id="modal-cor-logo2"></p></div>
+                <div class="detail-item"><strong>Venda de Origem</strong><a id="modal-sale-link" href="#" target="_blank"></a></div>
+                <div class="detail-item"><strong>Endereço</strong><p id="modal-address"></p></div>
+                <div class="detail-item"><strong>Cidade/UF</strong><p id="modal-city-state"></p></div>
+                <div class="detail-item"><strong>CEP</strong><p id="modal-cep"></p></div>
             </div>
             <div class="detail-item-full" style="margin-top: 15px;"><strong>Observações</strong><p id="modal-notes" style="background-color: #222; padding: 10px; border-radius: 6px; min-height: 40px;"></p></div>
         </div>
@@ -146,9 +139,36 @@
         const columns = document.querySelectorAll('.kanban-cards');
         let draggedCard = null;
 
+        function toggleAddressVisibility() {
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                const column = card.closest('.kanban-column');
+                const addressDiv = card.querySelector('.card-address');
+                if (column && addressDiv) {
+                    const stageName = column.dataset.stageName || "";
+                    if (stageName.toLowerCase() === 'entrega') {
+                        addressDiv.style.display = 'block';
+                    } else {
+                        addressDiv.style.display = 'none';
+                    }
+                }
+            });
+        }
+
         board.addEventListener('dragstart', e => { if (e.target.classList.contains('kanban-card')) { draggedCard = e.target; setTimeout(() => e.target.classList.add('dragging'), 0); } });
         board.addEventListener('dragend', e => e.target.classList.remove('dragging'));
-        columns.forEach(col => { col.addEventListener('dragover', e => e.preventDefault()); col.addEventListener('drop', e => { e.preventDefault(); if (draggedCard) { col.appendChild(draggedCard); updateCardStage(draggedCard.dataset.orderId, col.dataset.stageId); } }); });
+        
+        columns.forEach(col => {
+            col.addEventListener('dragover', e => e.preventDefault());
+            col.addEventListener('drop', e => {
+                e.preventDefault();
+                if (draggedCard) {
+                    col.appendChild(draggedCard);
+                    updateCardStage(draggedCard.dataset.orderId, col.dataset.stageId);
+                    toggleAddressVisibility(); // Reavalia a visibilidade após o drop
+                }
+            });
+        });
+
         function updateCardStage(orderId, stageId) { fetch("{% url 'production:api_update_order_stage' %}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }, body: JSON.stringify({ 'order_id': orderId, 'stage_id': stageId }) }).then(res => res.json()).then(data => { if (data.status === 'success') { updateCardCounts(); } }); }
 
         const customerFilter = document.getElementById('customer-filter');
@@ -191,6 +211,13 @@
                 document.getElementById('modal-product').innerText = data.product_name;
                 document.getElementById('modal-quantity').innerText = data.quantity;
                 document.getElementById('modal-customer').innerText = data.customer_name;
+                document.getElementById('modal-gramatura').innerText = data.gramatura;
+                document.getElementById('modal-cor-embalagem').innerText = data.cor_embalagem;
+                document.getElementById('modal-cor-logo1').innerText = data.cor_logo_1;
+                document.getElementById('modal-cor-logo2').innerText = data.cor_logo_2;
+                document.getElementById('modal-address').innerText = data.address;
+                document.getElementById('modal-city-state').innerText = data.city_state;
+                document.getElementById('modal-cep').innerText = data.cep;
                 const saleLink = document.getElementById('modal-sale-link');
                 saleLink.href = data.sale_url; saleLink.innerText = `Venda #${data.sale_id}`;
                 const createdDate = new Date(data.created_at);
@@ -199,16 +226,12 @@
                 document.getElementById('modal-notes').innerText = data.notes || 'Nenhuma.';
                 document.getElementById('modal-edit-btn').href = data.edit_url;
                 document.getElementById('modal-delete-btn').href = data.delete_url;
-                document.getElementById('modal-cor-embalagem').innerText = data.cor_embalagem;
-                document.getElementById('modal-cor-logo1').innerText = data.cor_logo_1;
-                document.getElementById('modal-cor-logo2').innerText = data.cor_logo_2;
                 modalOverlay.classList.add('show');
             });
         }
         if (modalCloseBtn) { modalCloseBtn.addEventListener('click', () => modalOverlay.classList.remove('show')); }
         board.addEventListener('click', event => { const detailsIcon = event.target.closest('.card-details-icon'); if (detailsIcon) { const card = detailsIcon.closest('.kanban-card'); if (card) { openModal(card.dataset.orderId); } } });
     
-        // --- LÓGICA DE MINIMIZAR COLUNAS (CORRIGIDA E COMPLETA) ---
         const toggleColumnBtns = document.querySelectorAll('.toggle-column-btn');
         toggleColumnBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -224,6 +247,9 @@
                 }
             });
         });
+
+        // Roda a verificação de endereço uma vez ao carregar a página
+        toggleAddressVisibility();
     });
 </script>
 {% endblock %}
