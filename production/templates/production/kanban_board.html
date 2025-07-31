@@ -118,6 +118,8 @@
                 <div class="detail-item"><strong>Cor Logo 1</strong><p id="modal-cor-logo1"></p></div>
                 <div class="detail-item"><strong>Cor Logo 2</strong><p id="modal-cor-logo2"></p></div>
                 <div class="detail-item"><strong>Venda de Origem</strong><a id="modal-sale-link" href="#" target="_blank"></a></div>
+                <div class="detail-item"><strong>Data de Criação</strong><p id="modal-created-date"></p></div>
+                <div class="detail-item"><strong>Vendedor</strong><p id="modal-seller"></p></div>
                 <div class="detail-item"><strong>Endereço</strong><p id="modal-address"></p></div>
                 <div class="detail-item"><strong>Cidade/UF</strong><p id="modal-city-state"></p></div>
                 <div class="detail-item"><strong>CEP</strong><p id="modal-cep"></p></div>
@@ -155,7 +157,7 @@
         }
 
         board.addEventListener('dragstart', e => { if (e.target.classList.contains('kanban-card')) { draggedCard = e.target; setTimeout(() => e.target.classList.add('dragging'), 0); } });
-        board.addEventListener('dragend', e => e.target.classList.remove('dragging'));
+        board.addEventListener('dragend', e => { if (draggedCard) { draggedCard.classList.remove('dragging'); } });
         
         columns.forEach(col => {
             col.addEventListener('dragover', e => e.preventDefault());
@@ -164,7 +166,7 @@
                 if (draggedCard) {
                     col.appendChild(draggedCard);
                     updateCardStage(draggedCard.dataset.orderId, col.dataset.stageId);
-                    toggleAddressVisibility(); // Reavalia a visibilidade após o drop
+                    toggleAddressVisibility();
                 }
             });
         });
@@ -247,8 +249,7 @@
                 }
             });
         });
-
-        // Roda a verificação de endereço uma vez ao carregar a página
+        
         toggleAddressVisibility();
     });
 </script>
