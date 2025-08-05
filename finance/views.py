@@ -27,14 +27,12 @@ class FinancialRecordListView(LoginRequiredMixin, UserPassesTestMixin, ListView)
         return self.request.user.has_perm('finance.view_financialrecord')
 
     def get_queryset(self):
-        # Filtra para mostrar arquivados ou não-arquivados com base no parâmetro 'view' na URL
         show_archived = self.request.GET.get('view') == 'archived'
         queryset = FinancialRecord.objects.filter(is_archived=show_archived)
         return queryset.select_related('sale__customer').order_by('status', '-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Informa ao template qual visualização está ativa para estilizar o botão correto
         context['view_mode'] = self.request.GET.get('view', 'active')
         return context
 
@@ -83,20 +81,46 @@ class ManageInstallmentView(LoginRequiredMixin, View):
         
     def post(self, request, pk, *args, **kwargs):
         try:
-            installment = get_object_or_404(Installment, pk=pk)
-            data = json.loads(request.body)
-            installment.due_date = data.get('due_date') or installment.due_date
-            paid_value = data.get('paid_value')
-            installment.paid_value = Decimal(paid_value) if paid_value else None
-            paid_at = data.get('paid_at')
-            installment.paid_at = paid_at if paid_at else None
-            installment.status = data.get('status', installment.status)
-            installment.save()
+            with transaction.atomic():
+                installment = get_object_or_404(Installment, pk=pk)
+                data = json.loads(request.body)
+                
+                new_status = data.get('status', installment.status)
+                
+                installment.due_date = data.get('due_date') or installment.due_date
+                paid_value = data.get('paid_value')
+                installment.paid_value = Decimal(paid_value) if paid_value else None
+                
+                # --- LÓGICA DE DATA DE PAGAMENTO CORRIGIDA E FINAL ---
+                paid_at_str = data.get('paid_at')
+                
+                if new_status == 'PAGO':
+                    # Se o status é PAGO, a data de pagamento é obrigatória.
+                    # Se o usuário não preencheu, usamos a data de hoje.
+                    installment.paid_at = paid_at_str if paid_at_str else timezone.now().date()
+                    # Se o valor pago não foi preenchido, consideramos o valor total da parcela.
+                    if not installment.paid_value:
+                        installment.paid_value = installment.value
+                else:
+                    # Se o status não é PAGO, limpamos os dados de pagamento.
+                    installment.paid_at = None
+                    installment.paid_value = None
+                    
+                installment.status = new_status
+                installment.save()
+
+                # Verifica se todas as parcelas estão pagas para atualizar o registro principal
+                all_installments_paid = not installment.financial_record.installments_list.filter(status__in=['PENDENTE', 'ATRASADA']).exists()
+                if all_installments_paid:
+                    installment.financial_record.status = 'PAGO'
+                else:
+                    installment.financial_record.status = 'AGUARDANDO' # Ou outro status apropriado
+                installment.financial_record.save()
+
             return JsonResponse({'status': 'success', 'message': 'Parcela atualizada!'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-# --- NOVA VIEW PARA ARQUIVAR UM REGISTRO ---
 @login_required
 @permission_required('finance.change_financialrecord', raise_exception=True)
 def archive_financial_record(request, pk):
